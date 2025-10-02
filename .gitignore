@@ -1,0 +1,27 @@
+# Virtual environments
+api/venv/
+venv/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Runtime data
+data/uploads/
+data/manual_store/
+
+# Logs and tmp
+*.log
+tmp/
+
+# OS/filesystem cruft
+.DS_Store
+Thumbs.db
+
