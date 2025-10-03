@@ -17,6 +17,11 @@ __pycache__/
 data/uploads/
 data/manual_store/
 
+# Sample/test files (keep data folder but exclude large files)
+data/*.pdf
+data/*.html
+data/*.docx
+
 # Logs and tmp
 *.log
 tmp/
@@ -25,3 +30,4 @@ tmp/
 .DS_Store
 Thumbs.db
 
+node_modules
