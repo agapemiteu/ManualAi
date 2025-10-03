@@ -9,7 +9,7 @@
 
 **Transform your car manual into an intelligent AI assistant**
 
-[Demo](https://manualai.vercel.app) • [Report Bug](https://github.com/yourusername/manualai/issues) • [Request Feature](https://github.com/yourusername/manualai/issues)
+[Live Demo](https://manual-ai-psi.vercel.app) • [Report Bug](https://github.com/agapemiteu/ManualAi/issues) • [Request Feature](https://github.com/agapemiteu/ManualAi/issues)
 
 </div>
 
@@ -17,21 +17,13 @@
 
 ## ✨ Features
 
-🤖 **AI-Powered Conversations** - Chat naturally with your car manual using advanced RAG (Retrieval-Augmented Generation)
-
-📚 **Multi-Manual Support** - Upload and manage multiple car manuals simultaneously
-
-🔍 **Smart Search** - Intelligent query expansion with semantic understanding
-
-🎯 **Context-Aware** - Detects urgency, safety concerns, and question types automatically
-
-⚠️ **Safety First** - Provides safety warnings and professional guidance when needed
-
-🌐 **Brand Agnostic** - Automatically neutralizes brand-specific references for universal answers
-
-📱 **Responsive Design** - Beautiful, mobile-friendly interface built with Tailwind CSS
-
-⚡ **Fast & Efficient** - Optimized vector search with sentence-transformers embeddings
+- 🤖 **AI-Powered RAG** - Natural conversations with your car manual using advanced retrieval-augmented generation
+- 📚 **Multi-Manual Support** - Upload and manage multiple manuals simultaneously
+- 🔍 **Smart Search** - Intelligent query expansion with semantic understanding
+- 🎯 **Context-Aware Responses** - Detects urgency, safety concerns, and question types
+- ⚠️ **Safety First** - Provides warnings and professional guidance when needed
+- 🌐 **Brand Agnostic** - Neutralizes brand-specific references for universal answers
+- 📱 **Responsive UI** - Mobile-friendly interface built with Tailwind CSS
 
 ---
 
@@ -46,8 +38,8 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/manualai.git
-cd manualai
+git clone https://github.com/agapemiteu/ManualAi.git
+cd ManualAi
 ```
 
 ### 2. Install Frontend Dependencies
@@ -65,16 +57,10 @@ pip install -r requirements.txt
 
 ### 4. Set Up Environment Variables
 
-Create a `.env.local` file in the root directory:
+Create `.env.local` in the root directory:
 
 ```env
-# Frontend Configuration
 NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
-
-# Backend Configuration (in api/.env.local)
-DEFAULT_MANUAL_BRAND=default
-CORS_ALLOW_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
-MANUAL_PATH=../data/mg-zs-warning-messages.html
 ```
 
 ### 5. Start the Backend Server
@@ -99,146 +85,69 @@ Frontend will run on `http://localhost:3000`
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐      ┌──────────────────┐      ┌─────────────────┐
-│   Next.js App   │─────▶│   FastAPI API    │─────▶│  Vector Store   │
-│  (TypeScript)   │      │    (Python)      │      │   (ChromaDB)    │
-└─────────────────┘      └──────────────────┘      └─────────────────┘
-        │                         │                          │
-        │                         │                          │
-   React UI              RAG Chain Logic          Sentence Transformers
-   Tailwind CSS          Smart Retrieval              Embeddings
+Next.js Frontend (TypeScript) → FastAPI Backend (Python) → ChromaDB Vector Store
 ```
 
-### Key Components
-
-- **Frontend**: Next.js 14 with TypeScript, React, and Tailwind CSS
-- **Backend**: FastAPI with Python for RAG implementation
-- **Embeddings**: Sentence-Transformers (`all-MiniLM-L6-v2`)
-- **Vector Store**: ChromaDB for efficient similarity search
-- **Document Processing**: Unstructured.io for PDF/HTML parsing
+**Tech Stack:**
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
+- **Backend**: FastAPI, LangChain RAG
+- **Embeddings**: Sentence-Transformers (all-MiniLM-L6-v2)
+- **Vector DB**: ChromaDB
+- **Processing**: Unstructured.io
 
 ---
 
 ## 🧠 Intelligence Features
 
-### 1. **Query Expansion**
-Automatically expands queries with synonyms:
-- "brake" → searches for "braking system", "brake fluid", "brake warning"
-
-### 2. **Smart Relevance Scoring**
-Uses Jaccard similarity to rank answers by relevance (15% minimum threshold)
-
-### 3. **Question Type Detection**
-- **Procedural**: "How to fix..." → Multi-step answers
-- **Warning**: "What does X light mean?" → Focused explanations
-
-### 4. **Safety Context**
-Detects urgent/safety situations and adds appropriate warnings
-
-### 5. **Brand Neutralization**
-Converts brand-specific terms to generic ones:
-- "MG Authorised Repairer" → "authorised service center"
+- **Query Expansion** - Automatically expands queries with synonyms and related terms
+- **Relevance Scoring** - Ranks answers using Jaccard similarity (15% threshold)
+- **Question Detection** - Identifies procedural vs. warning questions
+- **Safety Context** - Detects urgent situations and adds warnings
+- **Brand Neutralization** - Converts brand-specific terms to generic equivalents
 
 ---
 
 ## 📁 Project Structure
 
 ```
-manualai/
-├── app/                    # Next.js app directory
-│   ├── api/chat/          # API route for chat
-│   ├── upload/            # Upload page
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx           # Home page
-├── components/            # React components
-│   ├── ChatInterface.tsx  # Main chat UI
-│   └── MessageBubble.tsx  # Message display
-├── api/                   # Python backend
-│   ├── main.py           # FastAPI server
-│   ├── rag_chain.py      # RAG logic
-│   ├── vector_store.py   # Vector DB
-│   ├── document_loader.py # Document processing
-│   └── requirements.txt   # Python deps
-├── data/                  # Sample manuals
-├── public/                # Static assets
-└── README.md             # This file
+ManualAi/
+├── app/              # Next.js frontend
+├── components/       # React components
+├── api/              # FastAPI backend
+│   ├── main.py
+│   ├── rag_chain.py
+│   └── vector_store.py
+└── data/             # Uploaded manuals
 ```
 
 ---
 
 ## 🎯 Usage
 
-### Uploading a Manual
-
-1. Click **"Upload Manual"** in the navigation
-2. Select your car manual (PDF, HTML, or image)
-3. Fill in the car details (Brand, Model, Year)
-4. Wait for processing (usually 30-60 seconds)
-
-### Asking Questions
-
-1. Select a manual from the dropdown (or "All Manuals")
-2. Type your question naturally
-3. Get intelligent, context-aware answers
-
-### Example Questions
-
-- "What does the brake warning light mean?"
-- "How do I reset the service reminder?"
-- "My tire pressure is low, what should I do?"
-- "How often should I change the oil?"
+1. **Upload** - Select your car manual (PDF/HTML/Image), add details, wait ~30s
+2. **Ask** - Type questions naturally ("What does the brake light mean?")
+3. **Get Answers** - Receive intelligent, context-aware responses
 
 ---
 
 ## 🌐 Deployment
 
-### Deploy to Vercel (Frontend)
+**Frontend**: Deployed on [Vercel](https://vercel.com)  
+**Backend**: Deployed on [Render](https://render.com)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/manualai)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/agapemiteu/ManualAi)
 
-Or manually:
-
-```bash
-npm run build
-vercel deploy
-```
-
-### Backend Deployment Options
-
-1. **Railway**: Best for Python FastAPI
-2. **Render**: Easy deployment with free tier
-3. **AWS Lambda**: Serverless option
-4. **DigitalOcean App Platform**: Simple droplet deployment
+For detailed instructions, see [RENDER-DEPLOYMENT.md](RENDER-DEPLOYMENT.md)
 
 ---
 
 ## 🔧 Configuration
 
-### Frontend Environment Variables
+Set `NEXT_PUBLIC_API_URL` in `.env.local` to your backend URL:
 
 ```env
-NEXT_PUBLIC_API_URL=https://your-api-url.com
+NEXT_PUBLIC_API_URL=https://manualai-backend.onrender.com
 ```
-
-### Backend Environment Variables
-
-```env
-DEFAULT_MANUAL_BRAND=default
-CORS_ALLOW_ORIGINS=https://your-frontend-url.com
-MANUAL_PATH=../data/default-manual.html
-MANUAL_UPLOAD_DIR=../data/uploads
-MANUAL_STORAGE_DIR=../data/manual_store
-```
-
----
-
-## 📊 Performance
-
-- **Query Response Time**: < 1 second
-- **Upload Processing**: 30-60 seconds (depends on manual size)
-- **Concurrent Users**: 100+ (with proper backend scaling)
-- **Answer Accuracy**: 90%+ relevant responses
-- **Memory Usage**: ~200MB backend, ~50MB frontend
 
 ---
 
@@ -272,11 +181,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-**Project Maintainer**: Your Name
+**Project Maintainer**: Agape Miteu
 
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Email: your.email@example.com
-- Website: [https://manualai.vercel.app](https://manualai.vercel.app)
+- Email: miteuagape@gmail.com
+- Website: [https://manual-ai-psi.vercel.app](https://manual-ai-psi.vercel.app)
 
 ---
 
