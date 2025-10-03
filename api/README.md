@@ -1,0 +1,40 @@
+---
+title: ManualAi Backend
+emoji: 🚗
+colorFrom: blue
+colorTo: cyan
+sdk: docker
+pinned: false
+license: mit
+app_port: 7860
+---
+
+# ManualAi Backend API
+
+AI-powered car manual assistant backend using FastAPI, LangChain, and RAG.
+
+## Features
+
+- 🤖 RAG-based Q&A system
+- 📚 Multi-manual support
+- 🔍 Semantic search with embeddings
+- ⚡ FastAPI REST API
+
+## API Endpoints
+
+- `GET /` - Health check
+- `GET /api/manuals` - List all manuals
+- `POST /api/manuals` - Upload new manual
+- `POST /api/chat` - Chat with manuals
+
+## Tech Stack
+
+- FastAPI
+- LangChain
+- ChromaDB
+- Sentence Transformers
+- Unstructured.io
+
+## Frontend
+
+Live at: https://manual-ai-psi.vercel.app

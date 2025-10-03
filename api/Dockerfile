@@ -2,10 +2,12 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies for document processing
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    poppler-utils \
+    tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements
@@ -20,8 +22,12 @@ COPY . .
 # Create directories
 RUN mkdir -p data/manual_store data/uploads
 
-# Expose port
-EXPOSE 8000
+# Expose port (Hugging Face Spaces uses 7860)
+EXPOSE 7860
+
+# Set environment variables
+ENV PORT=7860
+ENV PYTHONUNBUFFERED=1
 
 # Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
