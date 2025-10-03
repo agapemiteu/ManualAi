@@ -15,15 +15,29 @@ from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadF
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from document_loader import load_manual
-from rag_chain import make_rag_chain
-from vector_store import build_vector_store
+# Lazy imports - only load when needed to speed up startup
+# from document_loader import load_manual
+# from rag_chain import make_rag_chain
+# from vector_store import build_vector_store
 
 # Load environment variables from .env.local if present
 dotenv_path = find_dotenv(".env.local")
 load_dotenv(dotenv_path, override=True)
 
 logger = logging.getLogger(__name__)
+
+# Lazy loading functions
+def load_manual(path):
+    from document_loader import load_manual as _load_manual
+    return _load_manual(path)
+
+def make_rag_chain(retriever):
+    from rag_chain import make_rag_chain as _make_rag_chain
+    return _make_rag_chain(retriever)
+
+def build_vector_store(*args, **kwargs):
+    from vector_store import build_vector_store as _build_vector_store
+    return _build_vector_store(*args, **kwargs)
 
 DEFAULT_MANUAL_BRAND = os.getenv("DEFAULT_MANUAL_BRAND", "default")
 CORS_ALLOW_ORIGINS = os.getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
