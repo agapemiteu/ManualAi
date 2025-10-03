@@ -1,0 +1,10 @@
+# Ignore Python backend files - these will be deployed separately to Railway
+api/
+*.py
+requirements.txt
+
+# Ignore data files
+data/*.pdf
+data/*.html
+data/uploads/
+data/manual_store/

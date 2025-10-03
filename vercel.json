@@ -1,3 +1,10 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }],
+  "functions": {
+    "api/**": {
+      "memory": 128,
+      "maxDuration": 10
+    }
+  },
+  "ignoreCommand": "npx vercel-ignore --production"
 }
