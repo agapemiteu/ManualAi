@@ -2,7 +2,9 @@
 
 ## 🚀 Deploy to Production
 
-### Option 1: Deploy Frontend to Vercel + Backend to Railway (Recommended)
+### Recommended: Vercel (Frontend) + Render (Backend)
+
+This is the best setup for portfolio projects - both are **free forever**!
 
 #### Frontend (Vercel)
 
@@ -33,20 +35,28 @@
 
 4. **Deploy!** - Click deploy
 
-#### Backend (Railway)
+#### Backend (Render)
 
-1. **Go to [railway.app](https://railway.app)**
-2. Click "New Project" → "Deploy from GitHub repo"
-3. Select your repository
-4. **Settings:**
+1. **Go to [render.com](https://render.com)**
+2. Sign in with GitHub
+3. Click "New +" → "Web Service"
+4. Connect to `ManualAi` repository
+5. **Configure:**
+   - Name: `manualai-backend`
    - Root Directory: `api`
+   - Runtime: `Python 3`
+   - Build Command: `pip install -r requirements.txt`
    - Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+   - Plan: **Free** ✅
    
-5. **Environment Variables** (Optional):
+6. **Environment Variables:**
    ```
    CORS_ALLOW_ORIGINS=https://your-vercel-app.vercel.app
-   DEFAULT_MANUAL_BRAND=default
    ```
+
+7. **Deploy!** - Takes 3-5 minutes (installing ML models)
+
+Your backend URL: `https://manualai-backend.onrender.com`
 
 6. **Deploy!** - Railway will auto-deploy
 
