@@ -287,12 +287,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DOC_PATH = Path(os.getenv("MANUAL_PATH", "../data/mg-zs-warning-messages.html")).resolve()
-UPLOAD_DIR = Path(os.getenv("MANUAL_UPLOAD_DIR", DOC_PATH.parent / "uploads")).resolve()
-STORAGE_DIR = Path(os.getenv("MANUAL_STORAGE_DIR", DOC_PATH.parent / "manual_store")).resolve()
+# Health check endpoint - responds immediately
+@app.get("/")
+async def root():
+    """Health check endpoint"""
+    return {"message": "Welcome to ManualAi API!", "status": "running"}
+
+
+DOC_PATH = Path(os.getenv("MANUAL_PATH", "../data/README.md")).resolve()  # Use README instead of HTML
+UPLOAD_DIR = Path(os.getenv("MANUAL_UPLOAD_DIR", Path("../data/uploads"))).resolve()
+STORAGE_DIR = Path(os.getenv("MANUAL_STORAGE_DIR", Path("../data/manual_store"))).resolve()
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-manual_manager = ManualManager(DOC_PATH, UPLOAD_DIR, STORAGE_DIR)
+# Skip default manual loading - let users upload their own
+manual_manager = ManualManager.__new__(ManualManager)
+manual_manager._lock = Lock()
+manual_manager._entries = {}
+manual_manager._metas = {}
+manual_manager._statuses = {}
+manual_manager.default_manual_id = "default"
+manual_manager.upload_dir = UPLOAD_DIR
+manual_manager.storage_dir = STORAGE_DIR
+manual_manager.storage_dir.mkdir(parents=True, exist_ok=True)
+manual_manager.manifest_path = manual_manager.storage_dir / "manifest.json"
+manual_manager._load_manifest()
 
 
 class QueryRequest(BaseModel):
