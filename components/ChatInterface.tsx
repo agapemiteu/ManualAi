@@ -184,7 +184,7 @@ export default function ChatInterface() {
     } finally {
       setIsSending(false);
     }
-  }, [input, selectedManualId]);
+  }, [input, readyManuals, selectedManualId]);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
