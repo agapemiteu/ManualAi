@@ -109,8 +109,9 @@ export default function ChatInterface() {
     }
     const manual = manuals.find((item) => item.manual_id === selectedManualId);
     if (!manual) return selectedManualId;
-    const modelYear = [manual.year, manual.model].filter(Boolean).join(" ");
-    const baseLabel = [manual.brand ?? "Manual", modelYear].filter(Boolean).join(" / ");
+    const baseLabel = [manual.brand ?? "Manual", manual.model, manual.year]
+      .filter(Boolean)
+      .join(" / ");
     return baseLabel ? `${baseLabel} (ID: ${manual.manual_id})` : manual.manual_id;
   }, [manuals, selectedManualId]);
 
@@ -127,7 +128,6 @@ export default function ChatInterface() {
         {
           role: "assistant",
           content: "No manuals are ready yet. Please upload a manual first.",
-          manualId: "System",
         },
       ]);
       setIsSending(false);
