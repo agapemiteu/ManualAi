@@ -31,3 +31,4 @@ tmp/
 Thumbs.db
 
 node_modules
+hf-space/venv/

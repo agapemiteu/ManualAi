@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+langchain-core==0.3.72
+langchain-openai==0.3.28
+langchain-community==0.3.27
+langchain-chroma==0.2.5
+langchain-text-splitters==0.3.9
+unstructured[pdf]==0.18.11
+python-multipart
+python-dotenv
+sentence-transformers
