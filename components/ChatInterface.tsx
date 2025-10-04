@@ -110,7 +110,8 @@ export default function ChatInterface() {
     const manual = manuals.find((item) => item.manual_id === selectedManualId);
     if (!manual) return selectedManualId;
     const modelYear = [manual.year, manual.model].filter(Boolean).join(" ");
-    return [manual.brand ?? "Manual", modelYear].filter(Boolean).join(" • ") || manual.manual_id;
+    const baseLabel = [manual.brand ?? "Manual", modelYear].filter(Boolean).join(" / ");
+    return baseLabel ? `${baseLabel} (ID: ${manual.manual_id})` : manual.manual_id;
   }, [manuals, selectedManualId]);
 
   const handleSend = useCallback(async () => {
@@ -119,13 +120,26 @@ export default function ChatInterface() {
     }
     const question = input.trim();
     setInput("");
-    const manualIdToSend = selectedManualId === ALL_MANUALS_VALUE ? undefined : selectedManualId;
+    const manualIdToSend = selectedManualId === ALL_MANUALS_VALUE ? readyManuals[0]?.manual_id : selectedManualId;
+    if (!manualIdToSend) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "No manuals are ready yet. Please upload a manual first.",
+          manualId: "System",
+        },
+      ]);
+      setIsSending(false);
+      return;
+    }
+
     setMessages((prev) => [
       ...prev,
       {
         role: "user",
         content: question,
-        manualId: manualIdToSend ?? "All Manuals",
+        manualId: manualIdToSend,
       },
     ]);
     setIsSending(true);
@@ -154,7 +168,7 @@ export default function ChatInterface() {
         {
           role: "assistant",
           content: data.answer ?? "I wasn't able to find an answer in the uploaded manuals.",
-          manualId: manualIdToSend ?? "All Manuals",
+          manualId: manualIdToSend,
         },
       ]);
     } catch (error) {
@@ -164,7 +178,7 @@ export default function ChatInterface() {
         {
           role: "assistant",
           content: `⚠️ ${description}`,
-          manualId: manualIdToSend ?? "All Manuals",
+          manualId: manualIdToSend,
         },
       ]);
     } finally {
@@ -215,7 +229,8 @@ export default function ChatInterface() {
               </option>
               {readyManuals.map((manual) => {
                 const labelParts = [manual.brand, manual.model, manual.year].filter(Boolean);
-                const label = labelParts.length > 0 ? labelParts.join(" • ") : manual.filename ?? manual.manual_id;
+                const labelBase = labelParts.length > 0 ? labelParts.join(" / ") : manual.filename ?? manual.manual_id;
+                const label = labelBase ? `${labelBase} (ID: ${manual.manual_id})` : manual.manual_id;
                 return (
                   <option key={manual.manual_id} value={manual.manual_id} className="bg-slate-900">
                     {label}
