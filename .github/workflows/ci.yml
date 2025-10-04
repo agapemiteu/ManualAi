@@ -31,7 +31,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential poppler-utils tesseract-ocr libmagic1 libgl1 libglib2.0-0 qpdf
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -46,3 +51,4 @@ jobs:
         run: |
           cd api
           python test_improvements.py
+
