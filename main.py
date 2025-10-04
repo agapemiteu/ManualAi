@@ -56,6 +56,7 @@ class ManualMetadata:
     manual_id: str
     source_path: str
     persist_path: str
+    collection_name: str
     filename: str
     brand: str
     model: Optional[str] = None
@@ -88,6 +89,7 @@ class ManualManager:
         self._entries: Dict[str, ManualEntry] = {}
         self._metas: Dict[str, ManualMetadata] = {}
         self._statuses: Dict[str, ManualStatus] = {}
+        self._errors: Dict[str, str] = {}
         self.default_manual_id = default_manual_id
         self.upload_dir = upload_dir
         self.storage_dir = storage_dir
@@ -101,7 +103,8 @@ class ManualManager:
             meta = self._metas.get(default_manual_id) or ManualMetadata(
                 manual_id=default_manual_id,
                 source_path=str(default_manual_path),
-                persist_path=str(self._persist_path(default_manual_id)),
+                persist_path=str(self._persist_path(default_manual_id, version="bootstrap")),
+                collection_name=f"{default_manual_id}-bootstrap",
                 filename=Path(default_manual_path).name,
                 brand=DEFAULT_MANUAL_BRAND,
             )
@@ -109,8 +112,9 @@ class ManualManager:
             self._statuses[default_manual_id] = ManualStatus.PROCESSING
             self._ingest_manual(meta, recreate=True)
 
-    def _persist_path(self, manual_id: str) -> Path:
-        return self.storage_dir / manual_id / "vector_store"
+    def _persist_path(self, manual_id: str, version: Optional[str] = None) -> Path:
+        token = version or uuid4().hex
+        return self.storage_dir / manual_id / token
 
     def _load_manifest(self) -> None:
         if not self.manifest_path.exists():
@@ -126,6 +130,7 @@ class ManualManager:
                 item.setdefault("brand", DEFAULT_MANUAL_BRAND)
                 item.setdefault("model", None)
                 item.setdefault("year", None)
+                item.setdefault("collection_name", item.get("manual_id"))
                 meta = ManualMetadata(**item)
             except TypeError:  # pragma: no cover - defensive
                 logger.warning("Skipping malformed manifest entry: %s", item)
@@ -135,7 +140,7 @@ class ManualManager:
                 vector_store = build_vector_store(
                     docs=None,
                     persist_directory=meta.persist_path,
-                    collection_name=meta.manual_id,
+                    collection_name=meta.collection_name,
                 )
                 entry = ManualEntry(
                     metadata=meta,
@@ -165,9 +170,20 @@ class ManualManager:
                 raise KeyError(manual_id)
             if status is ManualStatus.PROCESSING:
                 raise ValueError(f"Manual '{manual_id}' is still processing.")
+            entry = self._entries.pop(manual_id, None)
             meta = self._metas.pop(manual_id, None)
-            self._entries.pop(manual_id, None)
             self._statuses.pop(manual_id, None)
+            self._errors.pop(manual_id, None)
+
+        if entry is not None:
+            try:
+                entry.vector_store.delete_collection()
+            except Exception:  # pragma: no cover - best effort cleanup
+                pass
+            try:
+                entry.vector_store._client.reset()
+            except Exception:  # pragma: no cover - best effort cleanup
+                pass
 
         if meta:
             persist_root = Path(meta.persist_path).parent
@@ -187,6 +203,7 @@ class ManualManager:
         year: Optional[str] = None,
         *,
         background_tasks: Optional[BackgroundTasks] = None,
+        replace_existing: bool = False,
     ) -> ManualStatus:
         manual_path = manual_path.resolve()
         persist_path = self._persist_path(manual_id)
@@ -196,16 +213,38 @@ class ManualManager:
             if current_status is ManualStatus.PROCESSING:
                 raise ValueError(f"Manual '{manual_id}' is still processing.")
             if current_status is ManualStatus.READY:
-                raise ValueError(f"Manual '{manual_id}' already exists.")
+                if not replace_existing:
+                    raise ValueError(f"Manual '{manual_id}' already exists.")
+                existing_entry = self._entries.pop(manual_id, None)
+                self._metas.pop(manual_id, None)
+                self._statuses.pop(manual_id, None)
+                self._errors.pop(manual_id, None)
+                if existing_entry is not None:
+                    try:
+                        existing_entry.vector_store.delete_collection()
+                    except Exception:  # pragma: no cover - best effort cleanup
+                        pass
+                    try:
+                        existing_entry.vector_store._client.reset()
+                    except Exception:  # pragma: no cover - best effort cleanup
+                        pass
+                    try:
+                        old_root = Path(existing_entry.metadata.persist_path).parent
+                        shutil.rmtree(old_root, ignore_errors=True)
+                    except Exception:  # pragma: no cover - best effort cleanup
+                        pass
 
             brand_value = (brand or "").strip() or DEFAULT_MANUAL_BRAND
             model_value = (model or "").strip() or None
             year_value = (year or "").strip() or None
 
+            self._errors.pop(manual_id, None)
+
             meta = ManualMetadata(
                 manual_id=manual_id,
                 source_path=str(manual_path),
                 persist_path=str(persist_path),
+                collection_name=f"{manual_id}-{uuid4().hex[:8]}",
                 filename=filename,
                 brand=brand_value,
                 model=model_value,
@@ -239,7 +278,7 @@ class ManualManager:
             vector_store = build_vector_store(
                 docs,
                 persist_directory=str(persist_path),
-                collection_name=meta.manual_id,
+                collection_name=meta.collection_name,
                 recreate=recreate,
             )
             entry = ManualEntry(
@@ -253,9 +292,10 @@ class ManualManager:
                 self._statuses[meta.manual_id] = ManualStatus.READY
 
             self._save_manifest()
-        except Exception:
+        except Exception as exc:
             with self._lock:
                 self._statuses[meta.manual_id] = ManualStatus.FAILED
+                self._errors[meta.manual_id] = str(exc)[:512]
             raise
 
     def get_chain(self, manual_id: Optional[str]) -> object:
@@ -289,6 +329,7 @@ class ManualManager:
             "brand": meta.brand,
             "model": meta.model,
             "year": meta.year,
+            "error": self._errors.get(manual_id),
         }
 
     def list_manuals(self) -> List[Dict[str, object]]:
@@ -306,6 +347,7 @@ class ManualManager:
                         "brand": meta.brand,
                         "model": meta.model,
                         "year": meta.year,
+                        "error": self._errors.get(manual_id),
                     }
                 )
             return infos
@@ -341,6 +383,7 @@ manual_manager._lock = Lock()
 manual_manager._entries = {}
 manual_manager._metas = {}
 manual_manager._statuses = {}
+manual_manager._errors = {}
 manual_manager.default_manual_id = "default"
 manual_manager.upload_dir = UPLOAD_DIR
 manual_manager.storage_dir = STORAGE_DIR
@@ -365,6 +408,7 @@ class ManualInfo(BaseModel):
     brand: Optional[str] = None
     model: Optional[str] = None
     year: Optional[str] = None
+    error: Optional[str] = None
 
 
 class ManualListResponse(BaseModel):
@@ -421,15 +465,8 @@ async def upload_manual(
     if not content:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
-    if replace:
-        if manual_id is None:
-            raise HTTPException(status_code=400, detail="Manual ID is required when replace is enabled.")
-        try:
-            manual_manager.remove_manual(manual_identifier)
-        except KeyError:
-            pass
-        except ValueError as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if replace and manual_id is None:
+        raise HTTPException(status_code=400, detail="Manual ID is required when replace is enabled.")
 
     dest_dir = UPLOAD_DIR / manual_identifier
     dest_dir.mkdir(parents=True, exist_ok=True)
@@ -445,13 +482,17 @@ async def upload_manual(
             model,
             year,
             background_tasks=background_tasks,
+            replace_existing=replace,
         )
     except ValueError as exc:
         dest_path.unlink(missing_ok=True)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         dest_path.unlink(missing_ok=True)
-        raise HTTPException(status_code=500, detail="Failed to ingest manual.") from exc
+        message = str(exc)
+        if len(message) > 256:
+            message = message[:253] + '...'
+        raise HTTPException(status_code=500, detail=f"Failed to ingest manual: {message}") from exc
 
     info = manual_manager.get_manual_info(manual_identifier)
     return ManualUploadResponse(**info)
