@@ -46,6 +46,7 @@ interface ManualStatus {
   brand?: string | null;
   model?: string | null;
   year?: string | null;
+  error?: string | null;
 }
 
 function slugify(value: string): string {
@@ -72,6 +73,7 @@ const UploadPage: React.FC = () => {
   const [progress, setProgress] = useState<number>(0);
   const [message, setMessage] = useState<string | null>(null);
   const [manualStatus, setManualStatus] = useState<ManualStatus | null>(null);
+  const [replaceExisting, setReplaceExisting] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -106,6 +108,7 @@ const UploadPage: React.FC = () => {
       setProgress(0);
       setUploadState("idle");
       setManualStatus(null);
+      setReplaceExisting(false);
     },
     []
   );
@@ -149,7 +152,7 @@ const UploadPage: React.FC = () => {
           }
         } else if (data.status === "failed") {
           setUploadState("failed");
-          setMessage("Manual ingestion failed. Please check the file and try again.");
+          setMessage(data.error ? `Manual ingestion failed: ${data.error}` : "Manual ingestion failed. Please check the file and try again.");
           if (pollingRef.current) {
             clearInterval(pollingRef.current);
           }
@@ -189,11 +192,16 @@ const UploadPage: React.FC = () => {
       formData.append("year", year.trim());
     }
     formData.append("file", file);
+    formData.append("replace", replaceExisting ? "true" : "false");
 
     setUploadState("uploading");
     setProgress(0);
     setMessage(null);
     setManualStatus(null);
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
 
     try {
       await new Promise<void>((resolve, reject) => {
@@ -209,10 +217,22 @@ const UploadPage: React.FC = () => {
           if (xhr.status === 202) {
             resolve();
           } else {
-            reject(new Error(`Upload failed with status ${xhr.status}`));
+            let detail: string | undefined;
+            try {
+              const body = xhr.responseText ? JSON.parse(xhr.responseText) : null;
+              detail = typeof body?.detail === 'string' ? body.detail : undefined;
+            } catch {}
+            reject(new Error(detail || `Upload failed with status ${xhr.status}`));
           }
         };
-        xhr.onerror = () => reject(new Error("Upload failed"));
+        xhr.onerror = () => {
+          let detail: string | undefined;
+          try {
+            const body = xhr.responseText ? JSON.parse(xhr.responseText) : null;
+            detail = typeof body?.detail === 'string' ? body.detail : undefined;
+          } catch {}
+          reject(new Error(detail || "Upload failed"));
+        };
         xhr.send(formData);
       });
 
@@ -221,7 +241,8 @@ const UploadPage: React.FC = () => {
     } catch (error) {
       console.error(error);
       setUploadState("failed");
-      setMessage("Upload failed. Please try again.");
+      const detail = error instanceof Error ? error.message : "";
+      setMessage(detail || "Upload failed. Please try again.");
     }
   };
 
@@ -232,6 +253,7 @@ const UploadPage: React.FC = () => {
     setUploadState("idle");
     setMessage(null);
     setManualStatus(null);
+    setReplaceExisting(false);
   };
 
   const statusIcon = useMemo(() => {
@@ -377,6 +399,18 @@ const UploadPage: React.FC = () => {
           </div>
 
           <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <input
+                id="replace"
+                type="checkbox"
+                className="h-4 w-4 rounded border border-slate-700 bg-slate-900 text-sky-500 focus:ring-sky-500"
+                checked={replaceExisting}
+                onChange={(event) => setReplaceExisting(event.target.checked)}
+              />
+              <label htmlFor="replace" className="text-sm text-slate-300">
+                Replace existing manual with the same ID
+              </label>
+            </div>
             <button
               type="submit"
               disabled={!file || uploadState === "uploading" || uploadState === "processing"}
@@ -444,6 +478,9 @@ const UploadPage: React.FC = () => {
                 {manualStatus.model && <p>Model: {manualStatus.model}</p>}
                 {manualStatus.year && <p>Year: {manualStatus.year}</p>}
                 <p>Status: {manualStatus.status}</p>
+                {manualStatus.error && (
+                  <p className="text-amber-300">Error: {manualStatus.error}</p>
+                )}
               </div>
             )}
           </div>
