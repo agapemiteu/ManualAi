@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+import os
 from typing import List
 from xml.etree import ElementTree as ET
 
@@ -122,12 +123,18 @@ def _partition_pdf(path: Path):
     fast_elements = partition_pdf(filename=str(path), strategy="fast")
     if _total_text_length(fast_elements) >= 200:
         return fast_elements
+
+    enable_hi_res = os.getenv("ENABLE_PDF_HI_RES", "0").lower() in {"1", "true", "yes"}
+    if not enable_hi_res:
+        return fast_elements
+
     try:
-        return partition_pdf(
+        hi_res = partition_pdf(
             filename=str(path),
             strategy="hi_res",
             infer_table_structure=True,
         )
+        return hi_res if _total_text_length(hi_res) > 0 else fast_elements
     except Exception:
         return fast_elements
 
