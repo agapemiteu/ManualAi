@@ -120,7 +120,7 @@ def _total_text_length(elements) -> int:
 
 def _partition_pdf(path: Path):
     fast_elements = partition_pdf(filename=str(path), strategy="fast")
-    if _total_text_length(fast_elements) >= 800:
+    if _total_text_length(fast_elements) >= 200:
         return fast_elements
     try:
         return partition_pdf(
