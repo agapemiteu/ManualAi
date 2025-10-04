@@ -53,6 +53,23 @@ def _load_warning_tables(filepath: Path) -> List[Document]:
     return docs
 
 
+
+
+
+def _load_plain_text(path: Path) -> List[Document]:
+    """Fallback loader for simple text/markdown files."""
+    for encoding in ("utf-8", "utf-16", "latin-1"):
+        try:
+            text_content = path.read_text(encoding=encoding)
+            break
+        except UnicodeDecodeError:
+            continue
+    else:
+        text_content = path.read_text(errors="ignore")
+    normalized = text_content.strip()
+    if not normalized:
+        return []
+    return [Document(page_content=normalized, metadata={"source": path.name})]
 def _is_noise(line: str) -> bool:
     if not line:
         return True
@@ -125,6 +142,9 @@ def _partition_file(path: Path):
 
 
 def _load_unstructured(path: Path) -> List[Document]:
+    suffix = path.suffix.lower()
+    if suffix in {".txt", ".md"}:
+        return _load_plain_text(path)
     elements = _partition_file(path)
 
     docs: List[Document] = []
