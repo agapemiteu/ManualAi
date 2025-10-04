@@ -6,12 +6,13 @@ import os
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
+import shutil
 from threading import Lock
 from typing import Dict, List, Optional
 from uuid import uuid4
 
 from dotenv import find_dotenv, load_dotenv
-from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -156,6 +157,25 @@ class ManualManager:
             ready_entries = [asdict(entry.metadata) for entry in self._entries.values()]
         payload = json.dumps({"manuals": ready_entries}, indent=2)
         self.manifest_path.write_text(payload, encoding="utf-8")
+
+    def remove_manual(self, manual_id: str) -> ManualStatus:
+        with self._lock:
+            status = self._statuses.get(manual_id)
+            if status is None:
+                raise KeyError(manual_id)
+            if status is ManualStatus.PROCESSING:
+                raise ValueError(f"Manual '{manual_id}' is still processing.")
+            meta = self._metas.pop(manual_id, None)
+            self._entries.pop(manual_id, None)
+            self._statuses.pop(manual_id, None)
+
+        if meta:
+            persist_root = Path(meta.persist_path).parent
+            shutil.rmtree(persist_root, ignore_errors=True)
+        upload_path = self.upload_dir / manual_id
+        shutil.rmtree(upload_path, ignore_errors=True)
+        self._save_manifest()
+        return status
 
     def register_manual(
         self,
@@ -391,16 +411,27 @@ async def upload_manual(
     brand: str = Form(...),
     model: Optional[str] = Form(None),
     year: Optional[str] = Form(None),
+    replace: bool = Form(False),
 ) -> ManualUploadResponse:
     manual_identifier = manual_id or f"manual-{uuid4().hex[:8]}"
-    dest_dir = UPLOAD_DIR / manual_identifier
-    dest_dir.mkdir(parents=True, exist_ok=True)
-    dest_path = dest_dir / file.filename
 
     content = await file.read()
     if not content:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
+    if replace:
+        if manual_id is None:
+            raise HTTPException(status_code=400, detail="Manual ID is required when replace is enabled.")
+        try:
+            manual_manager.remove_manual(manual_identifier)
+        except KeyError:
+            pass
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    dest_dir = UPLOAD_DIR / manual_identifier
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest_path = dest_dir / file.filename
     dest_path.write_bytes(content)
 
     try:
@@ -422,3 +453,14 @@ async def upload_manual(
 
     info = manual_manager.get_manual_info(manual_identifier)
     return ManualUploadResponse(**info)
+
+
+@app.delete("/api/manuals/{manual_id}", status_code=204)
+async def delete_manual(manual_id: str) -> Response:
+    try:
+        manual_manager.remove_manual(manual_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=f"Manual '{exc.args[0]}' not found.") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return Response(status_code=204)

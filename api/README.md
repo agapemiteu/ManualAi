@@ -24,7 +24,8 @@ AI-powered car manual assistant backend using FastAPI, LangChain, and RAG.
 
 - `GET /` - Health check
 - `GET /api/manuals` - List all manuals
-- `POST /api/manuals` - Upload new manual
+- `POST /api/manuals` - Upload new manual (`replace=true` to overwrite an existing manual_id)
+- `DELETE /api/manuals/{manual_id}` - Remove a manual and its vector store artifacts
 - `POST /api/chat` - Chat with manuals
 
 ## Tech Stack
