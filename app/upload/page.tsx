@@ -18,6 +18,15 @@ import clsx from "clsx";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 const ACCEPTED_TYPES = ["application/pdf", "text/html", "text/plain"];
+type PdfAnalysisResult = {
+  isImageHeavy: boolean;
+  textLength: number;
+  numPages: number;
+  estimatedTime: string;
+};
+
+type AnalysisState = "idle" | "scanning" | "complete" | "error";
+
 const BRAND_OPTIONS = [
   "Toyota",
   "Honda",
@@ -65,6 +74,43 @@ function formatBytes(size: number): string {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+async function analyzePdf(file: File): Promise<PdfAnalysisResult | null> {
+  try {
+    const pdfjsModule = await import("pdfjs-dist/build/pdf");
+    const pdfjsLib: any = pdfjsModule;
+    if (pdfjsLib.GlobalWorkerOptions && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    }
+    const arrayBuffer = await file.arrayBuffer();
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    let extractedLength = 0;
+    const pagesToCheck = Math.min(3, pdf.numPages);
+    for (let pageIndex = 1; pageIndex <= pagesToCheck; pageIndex += 1) {
+      const page = await pdf.getPage(pageIndex);
+      const content = await page.getTextContent();
+      for (const item of content.items as Array<{ str?: string }>) {
+        const value = typeof item.str === "string" ? item.str.trim() : "";
+        extractedLength += value.length;
+      }
+      if (extractedLength >= 200) {
+        break;
+      }
+    }
+    const isImageHeavy = extractedLength < 150;
+    const estimatedTime = isImageHeavy ? "~5-10 minutes on free tier CPU" : pdf.numPages > 30 ? "~60-90 seconds" : "~10-25 seconds";
+    return {
+      isImageHeavy,
+      textLength: extractedLength,
+      numPages: pdf.numPages,
+      estimatedTime,
+    };
+  } catch (error) {
+    console.error("Failed to analyze PDF", error);
+    return null;
+  }
+}
+
 const UploadPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [manualId, setManualId] = useState("");
@@ -78,6 +124,9 @@ const UploadPage: React.FC = () => {
   const [replaceExisting, setReplaceExisting] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [analysisState, setAnalysisState] = useState<AnalysisState>("idle");
+  const [analysisResult, setAnalysisResult] = useState<PdfAnalysisResult | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -86,42 +135,58 @@ const UploadPage: React.FC = () => {
         clearInterval(pollingRef.current);
       }
     };
-  }, []);
+  }, [analyzePdf]);
 
-  const handleFileSelection = useCallback(
-    (selectedFile: File | null) => {
-      if (!selectedFile) {
-        setFile(null);
-        setManualId("");
-        return;
+  const handleFileSelection = useCallback(async (selectedFile: File | null) => {
+    if (!selectedFile) {
+      setFile(null);
+      setManualId("");
+      setAnalysisState("idle");
+      setAnalysisResult(null);
+      setAnalysisError(null);
+      return;
+    }
+
+    if (!ACCEPTED_TYPES.includes(selectedFile.type)) {
+      setMessage("Unsupported file type. Please upload a PDF, HTML, or TXT file.");
+      return;
+    }
+
+    if (selectedFile.size > MAX_FILE_SIZE) {
+      setMessage(`File is too large. Maximum allowed size is ${formatBytes(MAX_FILE_SIZE)}.`);
+      return;
+    }
+
+    setFile(selectedFile);
+    setManualId(slugify(selectedFile.name.replace(/\.[^/.]+$/, "")));
+    setMessage(null);
+    setProgress(0);
+    setUploadState("idle");
+    setManualStatus(null);
+    setReplaceExisting(false);
+    setAnalysisResult(null);
+    setAnalysisError(null);
+
+    if (selectedFile.type === "application/pdf") {
+      setAnalysisState("scanning");
+      const analysis = await analyzePdf(selectedFile);
+      if (analysis) {
+        setAnalysisResult(analysis);
+        setAnalysisState("complete");
+      } else {
+        setAnalysisState("error");
+        setAnalysisError("Unable to estimate processing time for this PDF.");
       }
-
-      if (!ACCEPTED_TYPES.includes(selectedFile.type)) {
-        setMessage("Unsupported file type. Please upload a PDF, HTML, or TXT file.");
-        return;
-      }
-
-      if (selectedFile.size > MAX_FILE_SIZE) {
-        setMessage(`File is too large. Maximum allowed size is ${formatBytes(MAX_FILE_SIZE)}.`);
-        return;
-      }
-
-      setFile(selectedFile);
-      setManualId(slugify(selectedFile.name.replace(/\.[^/.]+$/, "")));
-      setMessage(null);
-      setProgress(0);
-      setUploadState("idle");
-      setManualStatus(null);
-      setReplaceExisting(false);
-    },
-    []
-  );
+    } else {
+      setAnalysisState("idle");
+    }
+  }, [analyzePdf]);
 
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
     const droppedFile = event.dataTransfer?.files?.[0];
-    handleFileSelection(droppedFile ?? null);
+    void handleFileSelection(droppedFile ?? null);
   };
 
   const onDragOver = (event: DragEvent<HTMLDivElement>) => {
@@ -131,7 +196,7 @@ const UploadPage: React.FC = () => {
 
   const onFileInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0] ?? null;
-    handleFileSelection(selectedFile);
+    void handleFileSelection(selectedFile);
   };
 
   const startStatusPolling = useCallback((id: string) => {
@@ -163,17 +228,13 @@ const UploadPage: React.FC = () => {
         }
       } catch (error) {
         console.error(error);
-        setUploadState("failed");
-        setMessage("Unable to retrieve manual status. Please try again later.");
-        if (pollingRef.current) {
-          clearInterval(pollingRef.current);
-        }
+        setMessage("Unable to retrieve manual status. Retrying...");
       }
     };
 
     pollingRef.current = setInterval(poll, 2000);
     poll();
-  }, []);
+  }, [analyzePdf]);
 
   const cancelManual = useCallback(async () => {
     if (!manualStatus) {
@@ -313,6 +374,9 @@ const UploadPage: React.FC = () => {
     setMessage(null);
     setManualStatus(null);
     setReplaceExisting(false);
+    setAnalysisState("idle");
+    setAnalysisResult(null);
+    setAnalysisError(null);
   };
 
   const statusIcon = useMemo(() => {
@@ -385,6 +449,9 @@ const UploadPage: React.FC = () => {
               </div>
             ) : (
               <label htmlFor="file-input" className="flex flex-col items-center gap-3 text-center">
+                {analysisState === "scanning" && (
+                  <p className="text-xs text-sky-300">Analyzing PDF to estimate processing time...</p>
+                )}
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-800/80">
                   <Upload className="h-6 w-6 text-sky-400" />
                 </div>
@@ -395,6 +462,25 @@ const UploadPage: React.FC = () => {
               </label>
             )}
           </div>
+
+          {analysisState === "complete" && analysisResult && (
+            <div className={clsx("mt-3 rounded-lg border px-4 py-3 text-sm", analysisResult.isImageHeavy ? "border-amber-500/60 bg-amber-500/10 text-amber-200" : "border-sky-500/60 bg-sky-500/10 text-sky-100")}>
+              {analysisResult.isImageHeavy ? (
+                <>
+                  ?? This PDF appears to be image-heavy. Estimated processing time: {analysisResult.estimatedTime}. You can cancel if it is taking too long.
+                </>
+              ) : (
+                <>
+                  ? Detected text content in the sample pages. Estimated processing time: {analysisResult.estimatedTime}.
+                </>
+              )}
+            </div>
+          )}
+          {analysisState === "error" && analysisError && (
+            <div className="mt-3 rounded-lg border border-amber-500/60 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+              ?? {analysisError}
+            </div>
+          )}
 
           <div className="grid gap-4 rounded-2xl border border-slate-800 bg-slate-950/60 p-6 md:grid-cols-2">
             <div className="md:col-span-2">
@@ -411,7 +497,7 @@ const UploadPage: React.FC = () => {
               />
             </div>
 
-            <div>
+                      <div>
               <label htmlFor="brand" className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-200">
                 <Car className="h-4 w-4 text-sky-400" /> Brand
               </label>
@@ -430,7 +516,7 @@ const UploadPage: React.FC = () => {
               </select>
             </div>
 
-            <div>
+                      <div>
               <label htmlFor="model" className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-200">
                 Model (optional)
               </label>
@@ -443,7 +529,7 @@ const UploadPage: React.FC = () => {
               />
             </div>
 
-            <div>
+                      <div>
               <label htmlFor="year" className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-200">
                 Year (optional)
               </label>
@@ -457,7 +543,7 @@ const UploadPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-6">
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-6">
             <div className="mb-4 flex items-center gap-2">
               <input
                 id="replace"
@@ -538,7 +624,9 @@ const UploadPage: React.FC = () => {
                 {manualStatus.year && <p>Year: {manualStatus.year}</p>}
                 <p>Status: {manualStatus.status}</p>
                 {manualStatus.error && (
-                  <p className="text-amber-300">Error: {manualStatus.error}</p>
+                  <p className={manualStatus.status === "failed" ? "text-amber-300" : "text-sky-300"}>
+                    {manualStatus.status === "failed" ? `Error: ${manualStatus.error}` : manualStatus.error}
+                  </p>
                 )}
               <div className="mt-3 flex flex-wrap gap-2">
                 {manualStatus.status === "processing" && (
