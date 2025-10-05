@@ -104,6 +104,11 @@ class ManualManager:
         self._errors: Dict[str, str] = {}
         self._cancel_events: Dict[str, Event] = {}
         self._cancelled: Set[str] = set()
+
+    def _set_status_message(self, manual_id: str, message: str) -> None:
+        with self._lock:
+            self._errors[manual_id] = message
+
         self.default_manual_id = default_manual_id
         self.upload_dir = upload_dir
         self.storage_dir = storage_dir
@@ -227,6 +232,7 @@ class ManualManager:
                 self._cancel_events[manual_id] = cancel_event
             cancel_event.set()
             self._cancelled.add(manual_id)
+            self._set_status_message(manual_id, "Cancellation requested...")
             logger.info("Manual %s: cancel requested (status=%s)", manual_id, status)
             return status
 
@@ -323,6 +329,7 @@ class ManualManager:
 
         start_time = time.perf_counter()
         logger.info("Manual %s: ingestion started (source=%s)", meta.manual_id, meta.source_path)
+        self._set_status_message(meta.manual_id, "Loading manual text...")
 
         try:
             docs = load_manual(meta.source_path, cancel_callback=cancel_event.is_set)
@@ -331,6 +338,7 @@ class ManualManager:
 
             doc_count = len(docs)
             logger.info("Manual %s: loader returned %s chunks", meta.manual_id, doc_count)
+            self._set_status_message(meta.manual_id, f"Embedding {doc_count} chunks...")
 
             if cancel_event.is_set() or meta.manual_id in self._cancelled:
                 raise ManualCancelledError(meta.manual_id)
@@ -345,6 +353,7 @@ class ManualManager:
                 recreate=recreate,
             )
             logger.info("Manual %s: vector store built at %s", meta.manual_id, persist_path)
+            self._set_status_message(meta.manual_id, "Finalizing retrieval pipeline...")
 
             if cancel_event.is_set() or meta.manual_id in self._cancelled:
                 raise ManualCancelledError(meta.manual_id)
@@ -361,6 +370,7 @@ class ManualManager:
 
             self._cancelled.discard(meta.manual_id)
             self._save_manifest()
+            self._set_status_message(meta.manual_id, "Manual ready.")
             logger.info("Manual %s: ingestion completed in %.2fs", meta.manual_id, time.perf_counter() - start_time)
         except ManualLoadCancelledError as exc:
             logger.info("Manual %s: document loader cancelled ingestion (%s)", meta.manual_id, exc)
