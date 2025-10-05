@@ -18,9 +18,26 @@ LOG_LEVEL = os.getenv('MANUALAI_LOG_LEVEL', 'INFO').upper()
 LOG_FORMAT = os.getenv('MANUALAI_LOG_FORMAT', '[%(levelname)s] %(name)s: %(message)s')
 logging.basicConfig(level=getattr(logging, LOG_LEVEL, logging.INFO), format=LOG_FORMAT, force=True)
 
+LOG_BUFFER_SIZE = int(os.getenv('MANUALAI_LOG_BUFFER', '500'))
+_LOG_BUFFER = deque(maxlen=LOG_BUFFER_SIZE)
+
+class _BufferLogHandler(logging.Handler):
+    def emit(self, record) -> None:
+        try:
+            message = self.format(record)
+        except Exception:
+            return
+        _LOG_BUFFER.append(message)
+
+_buffer_handler = _BufferLogHandler()
+_buffer_handler.setFormatter(logging.Formatter(LOG_FORMAT))
+logging.getLogger().addHandler(_buffer_handler)
+
 from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from collections import deque
+
 
 # Lazy imports - only load when needed to speed up startup
 # from document_loader import load_manual
@@ -609,6 +626,13 @@ async def cancel_manual(manual_id: str) -> ManualInfo:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     info = manual_manager.get_manual_info(manual_id)
     return ManualInfo(**info)
+
+
+@app.get("/api/system/logs")
+async def get_system_logs(limit: int = 200) -> Dict[str, List[str]]:
+    limit = max(1, min(limit, len(_LOG_BUFFER)))
+    start_index = max(0, len(_LOG_BUFFER) - limit)
+    return {"logs": list(_LOG_BUFFER)[start_index:]}
 
 
 @app.delete("/api/manuals/{manual_id}", status_code=204)
