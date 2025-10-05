@@ -12,6 +12,11 @@ from typing import Dict, List, Optional, Set
 from uuid import uuid4
 
 from dotenv import find_dotenv, load_dotenv
+
+LOG_LEVEL = os.getenv('MANUALAI_LOG_LEVEL', 'INFO').upper()
+LOG_FORMAT = os.getenv('MANUALAI_LOG_FORMAT', '[%(levelname)s] %(name)s: %(message)s')
+logging.basicConfig(level=getattr(logging, LOG_LEVEL, logging.INFO), format=LOG_FORMAT, force=True)
+
 from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
