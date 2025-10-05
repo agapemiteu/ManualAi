@@ -7,8 +7,8 @@ from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
 import shutil
-from threading import Lock
-from typing import Dict, List, Optional
+from threading import Event, Lock
+from typing import Dict, List, Optional, Set
 from uuid import uuid4
 
 from dotenv import find_dotenv, load_dotenv
@@ -28,9 +28,9 @@ load_dotenv(dotenv_path, override=True)
 logger = logging.getLogger(__name__)
 
 # Lazy loading functions
-def load_manual(path):
+def load_manual(path, *, cancel_callback=None):
     from document_loader import load_manual as _load_manual
-    return _load_manual(path)
+    return _load_manual(path, cancel_callback=cancel_callback)
 
 def make_rag_chain(retriever):
     from rag_chain import make_rag_chain as _make_rag_chain
@@ -77,6 +77,12 @@ class ManualNotReadyError(Exception):
         self.status = status
 
 
+class ManualCancelledError(Exception):
+    def __init__(self, manual_id: str) -> None:
+        super().__init__(f"Manual '{manual_id}' was cancelled by user.")
+        self.manual_id = manual_id
+
+
 class ManualManager:
     def __init__(
         self,
@@ -90,6 +96,8 @@ class ManualManager:
         self._metas: Dict[str, ManualMetadata] = {}
         self._statuses: Dict[str, ManualStatus] = {}
         self._errors: Dict[str, str] = {}
+        self._cancel_events: Dict[str, Event] = {}
+        self._cancelled: Set[str] = set()
         self.default_manual_id = default_manual_id
         self.upload_dir = upload_dir
         self.storage_dir = storage_dir
@@ -110,7 +118,9 @@ class ManualManager:
             )
             self._metas[default_manual_id] = meta
             self._statuses[default_manual_id] = ManualStatus.PROCESSING
-            self._ingest_manual(meta, recreate=True)
+            cancel_event = self._cancel_events.setdefault(default_manual_id, Event())
+            cancel_event.clear()
+            self._ingest_manual(meta, cancel_event, recreate=True)
 
     def _persist_path(self, manual_id: str, version: Optional[str] = None) -> Path:
         token = version or uuid4().hex
@@ -156,6 +166,7 @@ class ManualManager:
             self._metas[meta.manual_id] = meta
             self._entries[meta.manual_id] = entry
             self._statuses[meta.manual_id] = ManualStatus.READY
+            self._cancel_events[meta.manual_id] = Event()
 
     def _save_manifest(self) -> None:
         with self._lock:
@@ -169,7 +180,10 @@ class ManualManager:
             if status is None:
                 raise KeyError(manual_id)
             if status is ManualStatus.PROCESSING:
-                raise ValueError(f"Manual '{manual_id}' is still processing.")
+                self._cancelled.add(manual_id)
+            cancel_event = self._cancel_events.get(manual_id)
+            if cancel_event is not None:
+                cancel_event.set()
             entry = self._entries.pop(manual_id, None)
             meta = self._metas.pop(manual_id, None)
             self._statuses.pop(manual_id, None)
@@ -191,7 +205,23 @@ class ManualManager:
         upload_path = self.upload_dir / manual_id
         shutil.rmtree(upload_path, ignore_errors=True)
         self._save_manifest()
+        self._cancel_events.pop(manual_id, None)
         return status
+
+    def cancel_ingestion(self, manual_id: str) -> ManualStatus:
+        with self._lock:
+            status = self._statuses.get(manual_id)
+            if status is None:
+                raise KeyError(manual_id)
+            if status is ManualStatus.READY:
+                raise ValueError(f"Manual '{manual_id}' is already ready.")
+            cancel_event = self._cancel_events.get(manual_id)
+            if cancel_event is None:
+                cancel_event = Event()
+                self._cancel_events[manual_id] = cancel_event
+            cancel_event.set()
+            self._cancelled.add(manual_id)
+            return status
 
     def register_manual(
         self,
@@ -240,6 +270,15 @@ class ManualManager:
 
             self._errors.pop(manual_id, None)
 
+            self._cancelled.discard(manual_id)
+
+            cancel_event = self._cancel_events.get(manual_id)
+            if cancel_event is None:
+                cancel_event = Event()
+                self._cancel_events[manual_id] = cancel_event
+            else:
+                cancel_event.clear()
+
             meta = ManualMetadata(
                 manual_id=manual_id,
                 source_path=str(manual_path),
@@ -254,23 +293,30 @@ class ManualManager:
             self._statuses[manual_id] = ManualStatus.PROCESSING
 
         if background_tasks is not None:
-            background_tasks.add_task(self._background_ingest, meta)
+            background_tasks.add_task(self._background_ingest, meta, cancel_event)
         else:
-            self._ingest_manual(meta, recreate=True)
+            self._ingest_manual(meta, cancel_event, recreate=True)
 
         return ManualStatus.PROCESSING
 
-    def _background_ingest(self, meta: ManualMetadata) -> None:
+    def _background_ingest(self, meta: ManualMetadata, cancel_event: Event) -> None:
         try:
-            self._ingest_manual(meta, recreate=True)
+            self._ingest_manual(meta, cancel_event, recreate=True)
+        except ManualCancelledError:
+            logger.info("Manual '%s' ingestion was cancelled", meta.manual_id)
         except Exception:  # pragma: no cover - logged upstream
             logger.exception("Background ingestion failed for manual '%s'", meta.manual_id)
 
-    def _ingest_manual(self, meta: ManualMetadata, recreate: bool = False) -> None:
+    def _ingest_manual(self, meta: ManualMetadata, cancel_event: Event, recreate: bool = False) -> None:
+        from document_loader import ManualLoadCancelledError  # Imported lazily to avoid circular deps
+
         try:
-            docs = load_manual(meta.source_path)
+            docs = load_manual(meta.source_path, cancel_callback=cancel_event.is_set)
             if not docs:
                 raise ValueError("No readable content found in the supplied manual.")
+
+            if cancel_event.is_set() or meta.manual_id in self._cancelled:
+                raise ManualCancelledError(meta.manual_id)
 
             persist_path = Path(meta.persist_path)
             persist_path.parent.mkdir(parents=True, exist_ok=True)
@@ -281,6 +327,10 @@ class ManualManager:
                 collection_name=meta.collection_name,
                 recreate=recreate,
             )
+
+            if cancel_event.is_set() or meta.manual_id in self._cancelled:
+                raise ManualCancelledError(meta.manual_id)
+
             entry = ManualEntry(
                 metadata=meta,
                 vector_store=vector_store,
@@ -291,12 +341,31 @@ class ManualManager:
                 self._entries[meta.manual_id] = entry
                 self._statuses[meta.manual_id] = ManualStatus.READY
 
+            self._cancelled.discard(meta.manual_id)
             self._save_manifest()
+        except ManualLoadCancelledError as exc:
+            cancel_event.set()
+            self._cancelled.add(meta.manual_id)
+            with self._lock:
+                self._statuses[meta.manual_id] = ManualStatus.FAILED
+                self._errors[meta.manual_id] = "Manual ingestion was cancelled by user."
+            raise ManualCancelledError(meta.manual_id) from exc
+        except ManualCancelledError:
+            cancel_event.set()
+            self._cancelled.add(meta.manual_id)
+            with self._lock:
+                self._statuses[meta.manual_id] = ManualStatus.FAILED
+                self._errors[meta.manual_id] = "Manual ingestion was cancelled by user."
+            raise
         except Exception as exc:
+            cancel_event.set()
+            self._cancelled.discard(meta.manual_id)
             with self._lock:
                 self._statuses[meta.manual_id] = ManualStatus.FAILED
                 self._errors[meta.manual_id] = str(exc)[:512]
             raise
+        finally:
+            cancel_event.clear()
 
     def get_chain(self, manual_id: Optional[str]) -> object:
         target_id = manual_id or self.default_manual_id
@@ -382,6 +451,8 @@ manual_manager._entries = {}
 manual_manager._metas = {}
 manual_manager._statuses = {}
 manual_manager._errors = {}
+manual_manager._cancel_events = {}
+manual_manager._cancelled = set()
 manual_manager.default_manual_id = "default"
 manual_manager.upload_dir = UPLOAD_DIR
 manual_manager.storage_dir = STORAGE_DIR
@@ -494,6 +565,18 @@ async def upload_manual(
 
     info = manual_manager.get_manual_info(manual_identifier)
     return ManualUploadResponse(**info)
+
+
+@app.post("/api/manuals/{manual_id}/cancel", response_model=ManualInfo, status_code=202)
+async def cancel_manual(manual_id: str) -> ManualInfo:
+    try:
+        manual_manager.cancel_ingestion(manual_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=f"Manual '{exc.args[0]}' not found.") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    info = manual_manager.get_manual_info(manual_id)
+    return ManualInfo(**info)
 
 
 @app.delete("/api/manuals/{manual_id}", status_code=204)
