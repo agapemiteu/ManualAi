@@ -213,6 +213,90 @@ def _run_ocr_on_images(images: Sequence[Tuple[int, bytes]], cancel_callback: Opt
     return elements
 
 
+
+def _partition_pdf(path: Path, cancel_callback: Optional[Callable[[], bool]] = None):
+    """Partition a PDF using the fast strategy with selective OCR fallbacks."""
+    _check_cancel(cancel_callback)
+
+    start_time = time.perf_counter()
+    logger.info("PDF %s: running fast partition", path)
+
+    fast_elements = partition_pdf(filename=str(path), strategy="fast")
+    fast_text = _total_text_length(fast_elements)
+    page_lengths = _collect_page_lengths(fast_elements)
+    logger.info("PDF %s: fast strategy produced %s characters across %s pages", path, fast_text, len(page_lengths))
+
+    text_replacements: List[_OCRElement] = []
+    ocr_pages: List[int] = []
+
+    try:
+        import fitz  # type: ignore
+    except ImportError as exc:  # pragma: no cover - optional dependency
+        if fast_text < _MIN_FAST_TEXT:
+            logger.warning("PyMuPDF unavailable; returning fast output without OCR fallback: %s", exc)
+        return fast_elements
+
+    with fitz.open(path) as pdf:
+        total_pages = pdf.page_count
+        logger.info("PDF %s: scanning %s pages for inline text", path, total_pages)
+        for index in range(total_pages):
+            page_number = index + 1
+            _check_cancel(cancel_callback)
+            if page_lengths.get(page_number, 0) > 0:
+                continue
+            raw_text = pdf[index].get_text("text").strip()
+            if raw_text:
+                cleaned = _clean_text(raw_text)
+                if cleaned:
+                    text_replacements.append(_OCRElement(cleaned, page_number))
+                    logger.info("PDF %s: extracted %s chars directly from page %s", path, len(cleaned), page_number)
+                continue
+            ocr_pages.append(page_number)
+
+    if ocr_pages:
+        logger.info("PDF %s: %s pages require OCR fallback", path, len(ocr_pages))
+    else:
+        logger.info("PDF %s: all pages contained extractable text", path)
+
+    pages_to_replace = {int(element.metadata.page_number) for element in text_replacements}
+    pages_to_replace.update(int(page) for page in ocr_pages)
+
+    filtered_fast = _filter_elements_by_pages(fast_elements, pages_to_replace)
+
+    rendered_images = _render_pages_for_ocr(path, sorted(ocr_pages), cancel_callback)
+    ocr_elements = _run_ocr_on_images(rendered_images, cancel_callback)
+
+    extra_elements: List[object] = [*text_replacements, *ocr_elements]
+    combined = _merge_elements(filtered_fast, extra_elements) if extra_elements else filtered_fast
+    combined_length = _total_text_length(combined)
+    logger.info("PDF %s: combined text after OCR contains %s characters", path, combined_length)
+
+    if combined_length >= _MIN_FAST_TEXT or not ocr_pages:
+        logger.info("PDF %s: returning combined output without hi_res fallback (elapsed %.2fs)", path, time.perf_counter() - start_time)
+        return combined
+
+    _check_cancel(cancel_callback)
+    try:
+        logger.info("PDF %s: invoking hi_res fallback", path)
+        hi_res = partition_pdf(filename=str(path), strategy="hi_res", infer_table_structure=True)
+    except Exception as exc:  # pragma: no cover - best effort logging
+        logger.warning("PDF %s: hi_res OCR fallback failed: %s", path, exc)
+        return combined
+
+    hi_res_length = _total_text_length(hi_res)
+    logger.info("PDF %s: hi_res fallback returned %s characters (elapsed %.2fs)", path, hi_res_length, time.perf_counter() - start_time)
+    return hi_res if hi_res_length > combined_length else combined
+
+
+def _partition_file(path: Path, cancel_callback: Optional[Callable[[], bool]] = None):
+    suffix = path.suffix.lower()
+    if suffix == ".pdf":
+        return _partition_pdf(path, cancel_callback=cancel_callback)
+    _check_cancel(cancel_callback)
+    if suffix in {".png", ".jpg", ".jpeg", ".heic", ".bmp", ".tif", ".tiff"}:
+        return partition_image(filename=str(path))
+    return partition(filename=str(path))
+
 def _load_unstructured(path: Path, cancel_callback: Optional[Callable[[], bool]] = None) -> List[Document]:
     suffix = path.suffix.lower()
     if suffix in {".txt", ".md"}:
