@@ -11,6 +11,7 @@ import shutil
 from threading import Event, Lock
 from typing import Dict, List, Optional, Set
 from uuid import uuid4
+from collections import deque
 
 from dotenv import find_dotenv, load_dotenv
 
@@ -36,7 +37,6 @@ logging.getLogger().addHandler(_buffer_handler)
 from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from collections import deque
 
 
 # Lazy imports - only load when needed to speed up startup
