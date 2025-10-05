@@ -9,3 +9,6 @@ unstructured[pdf,md]==0.18.11
 python-multipart
 python-dotenv
 sentence-transformers
+pymupdf
+pytesseract
+pillow
