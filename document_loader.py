@@ -297,10 +297,69 @@ def _partition_file(path: Path, cancel_callback: Optional[Callable[[], bool]] = 
         return partition_image(filename=str(path))
     return partition(filename=str(path))
 
+
+
+def _load_pdf_fast(path: Path, cancel_callback: Optional[Callable[[], bool]] = None) -> List[Document]:
+    try:
+        import fitz  # type: ignore
+    except ImportError as exc:
+        logger.warning("PyMuPDF not available for fast PDF pipeline: %s", exc)
+        return []
+
+    _check_cancel(cancel_callback)
+    documents: List[Document] = []
+    ocr_targets: List[int] = []
+    page_texts: Dict[int, str] = {}
+
+    with fitz.open(path) as pdf:
+        total_pages = pdf.page_count
+        logger.info("PDF %s: fast pipeline opened with %s pages", path, total_pages)
+        for index in range(total_pages):
+            page_number = index + 1
+            _check_cancel(cancel_callback)
+            page = pdf.load_page(index)
+            extracted = page.get_text("text") or ""
+            cleaned = _clean_text(extracted)
+            if cleaned:
+                page_texts[page_number] = cleaned
+                continue
+            ocr_targets.append(page_number)
+
+        if ocr_targets:
+            logger.info("PDF %s: %s pages require OCR in fast pipeline", path, len(ocr_targets))
+            images: List[Tuple[int, bytes]] = []
+            zoom = _OCR_DPI / 72
+            matrix = fitz.Matrix(zoom, zoom)
+            for page_number in ocr_targets:
+                _check_cancel(cancel_callback)
+                page = pdf.load_page(page_number - 1)
+                pix = page.get_pixmap(matrix=matrix, colorspace=fitz.csGRAY, alpha=False)
+                images.append((page_number, pix.tobytes("png")))
+            ocr_elements = _run_ocr_on_images(images, cancel_callback)
+            for element in ocr_elements:
+                text = _clean_text(element.text)
+                if text:
+                    page_texts[int(element.metadata.page_number)] = text
+
+    for page_number in sorted(page_texts):
+        documents.append(
+            Document(
+                page_content=page_texts[page_number],
+                metadata={"source": str(path), "page": page_number},
+            )
+        )
+
+    logger.info("PDF %s: fast pipeline produced %s document chunks", path, len(documents))
+    return documents
+
 def _load_unstructured(path: Path, cancel_callback: Optional[Callable[[], bool]] = None) -> List[Document]:
     suffix = path.suffix.lower()
     if suffix in {".txt", ".md"}:
         return _load_plain_text(path)
+    if suffix == ".pdf":
+        fast_docs = _load_pdf_fast(path, cancel_callback=cancel_callback)
+        if fast_docs:
+            return fast_docs
     elements = _partition_file(path, cancel_callback=cancel_callback)
 
     docs: List[Document] = []
