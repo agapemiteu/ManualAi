@@ -3,11 +3,13 @@
 import React, { ChangeEvent, DragEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
+  Ban,
   Car,
   CheckCircle,
   FileText,
   Info,
   Loader2,
+  Trash2,
   Upload,
   X,
 } from "lucide-react";
@@ -74,6 +76,8 @@ const UploadPage: React.FC = () => {
   const [message, setMessage] = useState<string | null>(null);
   const [manualStatus, setManualStatus] = useState<ManualStatus | null>(null);
   const [replaceExisting, setReplaceExisting] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -170,6 +174,61 @@ const UploadPage: React.FC = () => {
     pollingRef.current = setInterval(poll, 2000);
     poll();
   }, []);
+
+  const cancelManual = useCallback(async () => {
+    if (!manualStatus) {
+      return;
+    }
+    setIsCancelling(true);
+    try {
+      const response = await fetch(`${API_URL}/api/manuals/${encodeURIComponent(manualStatus.manual_id)}/cancel`, { method: "POST" });
+      if (!response.ok) {
+        throw new Error(`Cancel request failed with ${response.status}`);
+      }
+      const data = (await response.json()) as ManualStatus;
+      setManualStatus(data);
+      setUploadState(data.status === "ready" ? "ready" : data.status === "failed" ? "failed" : "processing");
+      setMessage(data.status === "failed" ? "Ingestion cancelled. Manual marked as failed." : "Cancellation requested. Manual will stop processing shortly.");
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+      startStatusPolling(manualStatus.manual_id);
+    } catch (error) {
+      console.error(error);
+      const detail = error instanceof Error ? error.message : "";
+      setMessage(detail || "Failed to cancel ingestion. Please try again.");
+    } finally {
+      setIsCancelling(false);
+    }
+  }, [manualStatus, startStatusPolling]);
+
+  const deleteManual = useCallback(async () => {
+    if (!manualStatus) {
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`${API_URL}/api/manuals/${encodeURIComponent(manualStatus.manual_id)}`, { method: "DELETE" });
+      if (!response.ok) {
+        throw new Error(`Delete request failed with ${response.status}`);
+      }
+      setMessage("Manual deleted successfully.");
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+      setManualStatus(null);
+      setUploadState("idle");
+      setProgress(0);
+    } catch (error) {
+      console.error(error);
+      const detail = error instanceof Error ? error.message : "";
+      setMessage(detail || "Failed to delete manual. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [manualStatus]);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -481,6 +540,26 @@ const UploadPage: React.FC = () => {
                 {manualStatus.error && (
                   <p className="text-amber-300">Error: {manualStatus.error}</p>
                 )}
+              <div className="mt-3 flex flex-wrap gap-2">
+                {manualStatus.status === "processing" && (
+                  <button
+                    type="button"
+                    onClick={cancelManual}
+                    disabled={isCancelling}
+                    className={clsx("inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-200 transition hover:border-sky-500 hover:text-sky-300", isCancelling && "cursor-not-allowed opacity-70")}
+                  >
+                    <Ban className="h-4 w-4 text-sky-400" /> {isCancelling ? "Cancelling..." : "Cancel ingestion"}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={deleteManual}
+                  disabled={isDeleting}
+                  className={clsx("inline-flex items-center gap-2 rounded-lg border border-red-500/50 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-200 transition hover:bg-red-500/20", isDeleting && "cursor-not-allowed opacity-70")}
+                >
+                  <Trash2 className="h-4 w-4" /> {isDeleting ? "Deleting..." : "Delete manual"}
+                </button>
+              </div>
               </div>
             )}
           </div>

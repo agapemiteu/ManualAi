@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
@@ -221,6 +222,7 @@ class ManualManager:
                 self._cancel_events[manual_id] = cancel_event
             cancel_event.set()
             self._cancelled.add(manual_id)
+            logger.info("Manual %s: cancel requested (status=%s)", manual_id, status)
             return status
 
     def register_manual(
@@ -235,6 +237,7 @@ class ManualManager:
         background_tasks: Optional[BackgroundTasks] = None,
         replace_existing: bool = False,
     ) -> ManualStatus:
+        logger.info("Manual %s: register request (replace=%s, filename=%s)", manual_id, replace_existing, manual_path)
         manual_path = manual_path.resolve()
         persist_path = self._persist_path(manual_id)
 
@@ -293,13 +296,16 @@ class ManualManager:
             self._statuses[manual_id] = ManualStatus.PROCESSING
 
         if background_tasks is not None:
+            logger.info("Manual %s: queued for background ingestion", manual_id)
             background_tasks.add_task(self._background_ingest, meta, cancel_event)
         else:
+            logger.info("Manual %s: ingesting synchronously", manual_id)
             self._ingest_manual(meta, cancel_event, recreate=True)
 
         return ManualStatus.PROCESSING
 
     def _background_ingest(self, meta: ManualMetadata, cancel_event: Event) -> None:
+        logger.info("Manual %s: background ingestion worker started", meta.manual_id)
         try:
             self._ingest_manual(meta, cancel_event, recreate=True)
         except ManualCancelledError:
@@ -310,10 +316,16 @@ class ManualManager:
     def _ingest_manual(self, meta: ManualMetadata, cancel_event: Event, recreate: bool = False) -> None:
         from document_loader import ManualLoadCancelledError  # Imported lazily to avoid circular deps
 
+        start_time = time.perf_counter()
+        logger.info("Manual %s: ingestion started (source=%s)", meta.manual_id, meta.source_path)
+
         try:
             docs = load_manual(meta.source_path, cancel_callback=cancel_event.is_set)
             if not docs:
                 raise ValueError("No readable content found in the supplied manual.")
+
+            doc_count = len(docs)
+            logger.info("Manual %s: loader returned %s chunks", meta.manual_id, doc_count)
 
             if cancel_event.is_set() or meta.manual_id in self._cancelled:
                 raise ManualCancelledError(meta.manual_id)
@@ -327,6 +339,7 @@ class ManualManager:
                 collection_name=meta.collection_name,
                 recreate=recreate,
             )
+            logger.info("Manual %s: vector store built at %s", meta.manual_id, persist_path)
 
             if cancel_event.is_set() or meta.manual_id in self._cancelled:
                 raise ManualCancelledError(meta.manual_id)
@@ -343,7 +356,9 @@ class ManualManager:
 
             self._cancelled.discard(meta.manual_id)
             self._save_manifest()
+            logger.info("Manual %s: ingestion completed in %.2fs", meta.manual_id, time.perf_counter() - start_time)
         except ManualLoadCancelledError as exc:
+            logger.info("Manual %s: document loader cancelled ingestion (%s)", meta.manual_id, exc)
             cancel_event.set()
             self._cancelled.add(meta.manual_id)
             with self._lock:
@@ -351,6 +366,7 @@ class ManualManager:
                 self._errors[meta.manual_id] = "Manual ingestion was cancelled by user."
             raise ManualCancelledError(meta.manual_id) from exc
         except ManualCancelledError:
+            logger.info("Manual %s: ingestion cancelled", meta.manual_id)
             cancel_event.set()
             self._cancelled.add(meta.manual_id)
             with self._lock:
@@ -358,6 +374,7 @@ class ManualManager:
                 self._errors[meta.manual_id] = "Manual ingestion was cancelled by user."
             raise
         except Exception as exc:
+            logger.exception("Manual %s: ingestion failed: %s", meta.manual_id, exc)
             cancel_event.set()
             self._cancelled.discard(meta.manual_id)
             with self._lock:

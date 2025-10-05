@@ -5,6 +5,7 @@ import hashlib
 import logging
 import os
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from types import SimpleNamespace
@@ -20,6 +21,17 @@ from unstructured.partition.image import partition_image
 
 logger = logging.getLogger(__name__)
 
+_LOG_LEVEL = os.getenv("MANUALAI_LOG_LEVEL")
+if _LOG_LEVEL:
+    logger.setLevel(getattr(logging, _LOG_LEVEL.upper(), logging.INFO))
+elif logger.level == logging.NOTSET:
+    logger.setLevel(logging.INFO)
+
+if not logger.handlers:
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter('[%(levelname)s] %(name)s: %(message)s'))
+    logger.addHandler(handler)
+
 _HTML_NS = {"html": "http://www.w3.org/1999/xhtml"}
 
 _MIN_FAST_TEXT = 100
@@ -28,6 +40,8 @@ _OCR_DPI = int(os.getenv("MANUAL_OCR_DPI", "170"))
 _OCR_MAX_WORKERS = max(1, min(int(os.getenv("MANUAL_OCR_WORKERS", str(os.cpu_count() or 1))), 6))
 _OCR_CACHE_DIR = Path(os.getenv("MANUAL_OCR_CACHE_DIR", "../data/manual_store/ocr_cache")).resolve()
 _OCR_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+_OCR_TIMEOUT = float(os.getenv("MANUAL_OCR_TIMEOUT", "12.0"))
+_OCR_CONFIG = os.getenv("MANUAL_OCR_CONFIG", "--psm 6 --oem 1")
 
 
 class ManualLoadCancelledError(Exception):
@@ -104,6 +118,7 @@ def _merge_elements(existing: Sequence[object], extra: Sequence[object]) -> List
 def _render_pages_for_ocr(path: Path, pages: Sequence[int], cancel_callback: Optional[Callable[[], bool]]) -> List[Tuple[int, bytes]]:
     if not pages:
         return []
+    logger.info("PDF %s: rendering %s pages at %sdpi for OCR", path, len(pages), _OCR_DPI)
     try:
         import fitz  # type: ignore
     except ImportError as exc:
@@ -114,14 +129,15 @@ def _render_pages_for_ocr(path: Path, pages: Sequence[int], cancel_callback: Opt
         for page_number in pages:
             _check_cancel(cancel_callback)
             if page_number < 1 or page_number > pdf.page_count:
+                logger.warning("PDF %s: requested OCR for invalid page %s", path, page_number)
                 continue
             page = pdf.load_page(page_number - 1)
             zoom = _OCR_DPI / 72
             matrix = fitz.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=matrix, colorspace=fitz.csGRAY, alpha=False)
             images.append((page_number, pix.tobytes("png")))
+    logger.info("PDF %s: prepared %s page images for OCR", path, len(images))
     return images
-
 
 
 def _run_ocr_on_images(images: Sequence[Tuple[int, bytes]], cancel_callback: Optional[Callable[[], bool]]) -> List[_OCRElement]:
@@ -137,6 +153,7 @@ def _run_ocr_on_images(images: Sequence[Tuple[int, bytes]], cancel_callback: Opt
     except ImportError as exc:
         logger.warning("Pillow not available for OCR fallback: %s", exc)
         return []
+    logger.info("Running OCR on %s rendered pages", len(images))
     results: Dict[int, str] = {}
     lang = os.getenv("MANUAL_OCR_LANG", "eng")
 
@@ -148,17 +165,28 @@ def _run_ocr_on_images(images: Sequence[Tuple[int, bytes]], cancel_callback: Opt
             try:
                 cached = cache_path.read_text(encoding="utf-8").strip()
                 if cached:
+                    logger.info("OCR cache hit for page %s", page_number)
                     return page_number, cached
-            except Exception as exc:  # pragma: no cover - cache is best effort
+            except Exception as exc:  # pragma: no cover
                 logger.debug("Failed to read OCR cache for page %s: %s", page_number, exc)
         with Image.open(io.BytesIO(png_bytes)) as img:
             img = img.convert("L")
-            text = pytesseract.image_to_string(img, lang=lang)
+            try:
+                text = pytesseract.image_to_string(
+                    img,
+                    lang=lang,
+                    timeout=_OCR_TIMEOUT,
+                    config=_OCR_CONFIG,
+                )
+            except RuntimeError as exc:
+                logger.warning("OCR timed out for page %s: %s", page_number, exc)
+                return page_number, ""
         cleaned = _clean_text(text)
         try:
             cache_path.write_text(cleaned, encoding="utf-8")
-        except Exception as exc:  # pragma: no cover - cache is best effort
+        except Exception as exc:  # pragma: no cover
             logger.debug("Failed to write OCR cache for page %s: %s", page_number, exc)
+        logger.info("OCR extracted %s characters from page %s", len(cleaned), page_number)
         return page_number, cleaned
 
     with ThreadPoolExecutor(max_workers=_OCR_MAX_WORKERS) as executor:
@@ -170,7 +198,7 @@ def _run_ocr_on_images(images: Sequence[Tuple[int, bytes]], cancel_callback: Opt
                 page, text = future.result()
             except ManualLoadCancelledError:
                 raise
-            except Exception as exc:  # pragma: no cover - best effort logging
+            except Exception as exc:  # pragma: no cover
                 logger.warning("OCR failed for page %s: %s", page_number, exc)
                 continue
             if text:
@@ -181,187 +209,8 @@ def _run_ocr_on_images(images: Sequence[Tuple[int, bytes]], cancel_callback: Opt
         if not cleaned:
             continue
         elements.append(_OCRElement(cleaned, page_number))
+    logger.info("OCR produced text for %s/%s pages", len(elements), len(images))
     return elements
-
-
-
-
-def _cell_text(cell) -> str:
-    parts = [text.strip() for text in cell.itertext() if text and text.strip()]
-    return " ".join(parts)
-
-
-def _load_warning_tables(filepath: Path) -> List[Document]:
-
-    try:
-        tree = ET.parse(filepath)
-    except ET.ParseError:
-        return []
-
-    root = tree.getroot()
-    docs: List[Document] = []
-
-    for table in root.findall(".//html:table", _HTML_NS):
-        rows = table.findall("html:tr", _HTML_NS)
-        if len(rows) <= 1:
-            continue
-        for row in rows[1:]:
-            cells = row.findall("html:td", _HTML_NS)
-            if len(cells) < 2:
-                cells = row.findall("html:th", _HTML_NS)
-            if len(cells) < 2:
-                continue
-            warning = _cell_text(cells[0])
-            procedure = _cell_text(cells[1])
-            if not warning or not procedure:
-                continue
-            page_content = f"Warning: {warning}\nProcedure: {procedure}"
-            docs.append(
-                Document(
-                    page_content=page_content,
-                    metadata={"warning": warning, "procedure": procedure},
-                )
-            )
-    return docs
-
-
-
-
-
-def _load_plain_text(path: Path) -> List[Document]:
-    """Fallback loader for simple text/markdown files."""
-    for encoding in ("utf-8", "utf-16", "latin-1"):
-        try:
-            text_content = path.read_text(encoding=encoding)
-            break
-        except UnicodeDecodeError:
-            continue
-    else:
-        text_content = path.read_text(errors="ignore")
-    normalized = text_content.strip()
-    if not normalized:
-        return []
-    return [Document(page_content=normalized, metadata={"source": path.name})]
-def _is_noise(line: str) -> bool:
-    if not line:
-        return True
-    if line.isdigit():
-        return True
-    if len(line) <= 4 and not any(ch.isalpha() for ch in line):
-        return True
-    return False
-
-
-def _clean_text(text: str) -> str:
-    """Clean text while preserving important structure and context"""
-    cleaned_lines: List[str] = []
-    prev_line_empty = False
-    
-    for raw_line in text.splitlines():
-        line = raw_line.strip()
-        if _is_noise(line):
-            # Allow one empty line for paragraph separation
-            if not prev_line_empty and cleaned_lines:
-                prev_line_empty = True
-            continue
-        
-        # Remove excessive punctuation artifacts from OCR
-        line = re.sub(r'\.{3,}', '...', line)
-        line = re.sub(r'-{3,}', '—', line)
-        
-        # Fix common OCR errors
-        line = re.sub(r'\s+', ' ', line)  # Multiple spaces to single
-        line = re.sub(r'(\w)\s+([.,;:!?])', r'\1\2', line)  # Remove space before punctuation
-        
-        # Preserve important formatting markers
-        line = line.strip()
-        
-        cleaned_lines.append(line)
-        prev_line_empty = False
-    
-    return "\n".join(cleaned_lines).strip()
-
-
-def _total_text_length(elements) -> int:
-    total = 0
-    for element in elements:
-        text = getattr(element, 'text', '') or ''
-        total += len(text)
-    return total
-
-
-def _partition_pdf(path: Path, cancel_callback: Optional[Callable[[], bool]] = None):
-    """Partition a PDF using the fast strategy with selective OCR fallbacks."""
-    _check_cancel(cancel_callback)
-
-    fast_elements = partition_pdf(filename=str(path), strategy="fast")
-    page_lengths = _collect_page_lengths(fast_elements)
-
-    text_replacements: List[_OCRElement] = []
-    ocr_pages: List[int] = []
-
-    try:
-        import fitz  # type: ignore
-    except ImportError as exc:  # pragma: no cover - optional dependency
-        if _total_text_length(fast_elements) < _MIN_FAST_TEXT:
-            logger.warning(
-                "PyMuPDF unavailable; returning fast strategy output without OCR fallback: %s",
-                exc,
-            )
-        return fast_elements
-
-    with fitz.open(path) as pdf:
-        for index in range(pdf.page_count):
-            page_number = index + 1
-            _check_cancel(cancel_callback)
-            if page_lengths.get(page_number, 0) > 0:
-                continue
-            raw_text = pdf[index].get_text("text").strip()
-            if raw_text:
-                cleaned = _clean_text(raw_text)
-                if cleaned:
-                    text_replacements.append(_OCRElement(cleaned, page_number))
-                continue
-            ocr_pages.append(page_number)
-
-    pages_to_replace = {int(element.metadata.page_number) for element in text_replacements}
-    pages_to_replace.update(int(page) for page in ocr_pages)
-
-    filtered_fast = _filter_elements_by_pages(fast_elements, pages_to_replace)
-
-    ocr_elements = _run_ocr_on_images(
-        _render_pages_for_ocr(path, sorted(ocr_pages), cancel_callback),
-        cancel_callback,
-    )
-
-    extra_elements: List[object] = [*text_replacements, *ocr_elements]
-    combined = _merge_elements(filtered_fast, extra_elements) if extra_elements else filtered_fast
-
-    if _total_text_length(combined) >= _MIN_FAST_TEXT or not ocr_pages:
-        return combined
-
-    _check_cancel(cancel_callback)
-    try:
-        hi_res = partition_pdf(
-            filename=str(path),
-            strategy="hi_res",
-            infer_table_structure=True,
-        )
-    except Exception as exc:  # pragma: no cover - best effort logging
-        logger.warning("Hi-res OCR fallback failed: %s", exc)
-        return combined
-
-    return hi_res if _total_text_length(hi_res) > _total_text_length(combined) else combined
-
-
-def _partition_file(path: Path, cancel_callback: Optional[Callable[[], bool]] = None):
-    suffix = path.suffix.lower()
-    if suffix == ".pdf":
-        return _partition_pdf(path, cancel_callback=cancel_callback)
-    _check_cancel(cancel_callback)
-    if suffix in {".png", ".jpg", ".jpeg", ".heic", ".bmp", ".tif", ".tiff"}:
-        return partition_image(filename=str(path))
-    return partition(filename=str(path))
 
 
 def _load_unstructured(path: Path, cancel_callback: Optional[Callable[[], bool]] = None) -> List[Document]:
