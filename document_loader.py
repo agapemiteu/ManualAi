@@ -12,6 +12,21 @@ from types import SimpleNamespace
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 from xml.etree import ElementTree as ET
 
+# CRITICAL: Set NLTK_DATA before ANY imports that might use NLTK
+# This prevents unstructured from using the persistent /nltk_data directory
+import tempfile
+_NLTK_DIR = Path(os.getenv("NLTK_DATA", tempfile.gettempdir() + "/manualai_nltk"))
+try:
+    _NLTK_DIR.mkdir(parents=True, exist_ok=True)
+except:
+    _NLTK_DIR = Path(tempfile.mkdtemp(prefix="manualai_nltk_"))
+
+os.environ["NLTK_DATA"] = str(_NLTK_DIR)
+
+# Now it's safe to import NLTK and set its data path
+import nltk
+nltk.data.path = [str(_NLTK_DIR)]
+
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from unstructured.partition.auto import partition
