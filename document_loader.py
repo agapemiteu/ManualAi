@@ -40,8 +40,21 @@ except Exception as e:
 # Monkeypatch unstructured's download function to prevent it from trying
 import sys
 import types
+
+# Create fake module with ALL the functions unstructured needs
 unstructured_nlp = types.ModuleType('unstructured.nlp.tokenize')
-unstructured_nlp.download_nltk_packages = lambda: None  # Do nothing
+
+# No-op download function
+unstructured_nlp.download_nltk_packages = lambda: None
+
+# Provide the actual NLTK functions (from our configured NLTK)
+import nltk
+from nltk import pos_tag as _pos_tag, sent_tokenize as _sent_tokenize, word_tokenize as _word_tokenize
+unstructured_nlp.pos_tag = _pos_tag
+unstructured_nlp.sent_tokenize = _sent_tokenize
+unstructured_nlp.word_tokenize = _word_tokenize
+
+# Register BEFORE unstructured imports
 sys.modules['unstructured.nlp.tokenize'] = unstructured_nlp
 
 from langchain_core.documents import Document
