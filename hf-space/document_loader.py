@@ -57,8 +57,8 @@ def _get_ocr_cache_dir():
             _OCR_CACHE_DIR = cache_path
             logger.info(f"✅ OCR cache directory: {cache_path}")
         except (PermissionError, OSError) as e:
-            # Fallback to home directory
-            fallback = Path.home() / ".manualai" / "ocr_cache"
+            # Fallback to /app/.manualai (app working directory is always writable)
+            fallback = Path("/app/.manualai/ocr_cache")
             logger.warning(f"⚠️  Could not use {cache_path}: {e}, trying fallback: {fallback}")
             try:
                 fallback.mkdir(parents=True, exist_ok=True)
@@ -68,7 +68,7 @@ def _get_ocr_cache_dir():
                 _OCR_CACHE_DIR = fallback
                 logger.info(f"✅ OCR cache directory (fallback): {fallback}")
             except Exception as fallback_error:
-                # Last resort: use temp directory
+                # Last resort: use temp directory (always works)
                 logger.warning(f"⚠️  Fallback also failed: {fallback_error}, using temporary directory")
                 _OCR_CACHE_DIR = Path(tempfile.mkdtemp(prefix="ocr_cache_"))
                 logger.info(f"✅ OCR cache directory (temp): {_OCR_CACHE_DIR}")

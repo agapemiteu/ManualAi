@@ -554,7 +554,7 @@ STORAGE_DIR = Path(os.getenv("MANUALAI_STORAGE_DIR", os.getenv("MANUAL_STORAGE_D
 
 # Create directories with robust error handling
 def _ensure_directory(path: Path, description: str) -> Path:
-    """Ensure a directory exists, with fallback to home directory if permission denied."""
+    """Ensure a directory exists, with fallback to app directory if permission denied."""
     try:
         path.mkdir(parents=True, exist_ok=True)
         # Test write permissions
@@ -563,9 +563,9 @@ def _ensure_directory(path: Path, description: str) -> Path:
         test_file.unlink()
         logger.info(f"✅ {description}: {path}")
         return path
-    except PermissionError:
-        # Fallback to home directory
-        fallback = Path.home() / ".manualai" / path.name
+    except (PermissionError, OSError) as e:
+        # Fallback to /app/.manualai (app working directory is always writable)
+        fallback = Path("/app/.manualai") / path.name
         logger.warning(f"⚠️  Permission denied for {path}, using fallback: {fallback}")
         try:
             fallback.mkdir(parents=True, exist_ok=True)
@@ -574,9 +574,17 @@ def _ensure_directory(path: Path, description: str) -> Path:
             test_file.unlink()
             logger.info(f"✅ {description} (fallback): {fallback}")
             return fallback
-        except Exception as e:
-            logger.error(f"❌ Cannot create directory {description}: {e}")
-            return path  # Return original path and hope for the best
+        except Exception as fallback_error:
+            # Last resort: try /app subdirectory directly
+            final_fallback = Path("/app") / path.name
+            logger.error(f"❌ Fallback failed: {fallback_error}, trying /app/{path.name}")
+            try:
+                final_fallback.mkdir(parents=True, exist_ok=True)
+                logger.info(f"✅ {description} (final fallback): {final_fallback}")
+                return final_fallback
+            except Exception:
+                logger.error(f"❌ All fallbacks failed for {description}, using original path")
+                return path  # Return original path and hope for the best
     except Exception as e:
         logger.warning(f"⚠️  Error creating {description}: {e}")
         return path
