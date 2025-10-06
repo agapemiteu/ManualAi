@@ -64,8 +64,9 @@ def build_vector_store(*args, **kwargs):
     return _build_vector_store(*args, **kwargs)
 
 DEFAULT_MANUAL_BRAND = os.getenv("DEFAULT_MANUAL_BRAND", "default")
-CORS_ALLOW_ORIGINS = os.getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
-ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOW_ORIGINS.split(",") if origin.strip()]
+CORS_ALLOW_ORIGINS = os.getenv("CORS_ALLOW_ORIGINS", "*")
+# Allow all origins for deployment (Vercel, local dev, etc.)
+ALLOWED_ORIGINS = ["*"] if CORS_ALLOW_ORIGINS == "*" else [origin.strip() for origin in CORS_ALLOW_ORIGINS.split(",") if origin.strip()]
 
 # Ingestion timeout and OCR control
 MANUAL_INGESTION_TIMEOUT = float(os.getenv("MANUAL_INGESTION_TIMEOUT", "180"))  # 3 minutes
