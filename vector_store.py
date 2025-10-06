@@ -2,9 +2,23 @@ from functools import lru_cache
 from pathlib import Path
 from typing import List, Optional
 import shutil
+import os
+import tempfile
 
 from langchain_chroma import Chroma
 from sentence_transformers import SentenceTransformer
+
+# Ensure HuggingFace cache uses a writable directory
+_HF_CACHE = Path(os.getenv("HF_HOME", tempfile.gettempdir() + "/manualai_hf_cache"))
+try:
+    _HF_CACHE.mkdir(parents=True, exist_ok=True)
+except:
+    _HF_CACHE = Path(tempfile.mkdtemp(prefix="manualai_hf_cache_"))
+
+os.environ["HF_HOME"] = str(_HF_CACHE)
+os.environ["TRANSFORMERS_CACHE"] = str(_HF_CACHE)
+os.environ["SENTENCE_TRANSFORMERS_HOME"] = str(_HF_CACHE)
+os.environ["HUGGINGFACE_HUB_CACHE"] = str(_HF_CACHE)
 
 
 @lru_cache(maxsize=1)
@@ -12,7 +26,7 @@ def _get_model(model_name: str = "all-MiniLM-L6-v2") -> SentenceTransformer:
     """Load a better embedding model for improved semantic understanding"""
     # Using a more powerful model for better semantic search
     # Options: "all-MiniLM-L6-v2" (fast), "all-mpnet-base-v2" (better quality)
-    return SentenceTransformer(model_name)
+    return SentenceTransformer(model_name, cache_folder=str(_HF_CACHE))
 
 
 def build_vector_store(
