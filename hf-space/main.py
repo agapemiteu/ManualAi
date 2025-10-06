@@ -129,7 +129,10 @@ class ManualManager:
         self.default_manual_id = default_manual_id
         self.upload_dir = upload_dir
         self.storage_dir = storage_dir
-        self.storage_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            self.storage_dir.mkdir(parents=True, exist_ok=True)
+        except (PermissionError, OSError) as e:
+            logger.warning(f"Could not create storage directory {self.storage_dir}: {e}")
         self.manifest_path = self.storage_dir / "manifest.json"
 
         self._load_manifest()
@@ -544,10 +547,42 @@ async def root():
 
 
 DOC_PATH = Path(os.getenv("MANUAL_PATH", "../data/README.md")).resolve()  # Use README instead of HTML
-UPLOAD_DIR = Path(os.getenv("MANUAL_UPLOAD_DIR", "/tmp/manualai/uploads")).resolve()
-STORAGE_DIR = Path(os.getenv("MANUAL_STORAGE_DIR", "/tmp/manualai/manual_store")).resolve()
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+
+# Get directory paths from environment (can be overridden by startup script)
+UPLOAD_DIR = Path(os.getenv("MANUALAI_UPLOAD_DIR", os.getenv("MANUAL_UPLOAD_DIR", "/tmp/manualai/uploads"))).resolve()
+STORAGE_DIR = Path(os.getenv("MANUALAI_STORAGE_DIR", os.getenv("MANUAL_STORAGE_DIR", "/tmp/manualai/manual_store"))).resolve()
+
+# Create directories with robust error handling
+def _ensure_directory(path: Path, description: str) -> Path:
+    """Ensure a directory exists, with fallback to home directory if permission denied."""
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+        # Test write permissions
+        test_file = path / ".write_test"
+        test_file.touch()
+        test_file.unlink()
+        logger.info(f"✅ {description}: {path}")
+        return path
+    except PermissionError:
+        # Fallback to home directory
+        fallback = Path.home() / ".manualai" / path.name
+        logger.warning(f"⚠️  Permission denied for {path}, using fallback: {fallback}")
+        try:
+            fallback.mkdir(parents=True, exist_ok=True)
+            test_file = fallback / ".write_test"
+            test_file.touch()
+            test_file.unlink()
+            logger.info(f"✅ {description} (fallback): {fallback}")
+            return fallback
+        except Exception as e:
+            logger.error(f"❌ Cannot create directory {description}: {e}")
+            return path  # Return original path and hope for the best
+    except Exception as e:
+        logger.warning(f"⚠️  Error creating {description}: {e}")
+        return path
+
+UPLOAD_DIR = _ensure_directory(UPLOAD_DIR, "Upload directory")
+STORAGE_DIR = _ensure_directory(STORAGE_DIR, "Storage directory")
 
 # Skip default manual loading - let users upload their own
 manual_manager = ManualManager.__new__(ManualManager)
@@ -561,7 +596,6 @@ manual_manager._cancelled = set()
 manual_manager.default_manual_id = "default"
 manual_manager.upload_dir = UPLOAD_DIR
 manual_manager.storage_dir = STORAGE_DIR
-manual_manager.storage_dir.mkdir(parents=True, exist_ok=True)
 manual_manager.manifest_path = manual_manager.storage_dir / "manifest.json"
 manual_manager._load_manifest()
 
