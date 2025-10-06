@@ -12,8 +12,10 @@ from types import SimpleNamespace
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 from xml.etree import ElementTree as ET
 
-# CRITICAL: Set NLTK_DATA and download packages BEFORE importing unstructured
-# unstructured calls download_nltk_packages() at import time, so we must do this first
+# CRITICAL: Prevent unstructured from downloading NLTK data to /nltk_data
+# unstructured.nlp.tokenize calls download_nltk_packages() at import time
+# We monkeypatch it to do nothing, then set up NLTK ourselves
+
 import tempfile
 _NLTK_DIR = Path(os.getenv("NLTK_DATA", tempfile.gettempdir() + "/manualai_nltk"))
 try:
@@ -23,16 +25,24 @@ except:
 
 os.environ["NLTK_DATA"] = str(_NLTK_DIR)
 
-# Import NLTK and download packages to our directory
+# Import NLTK and set up paths
 import nltk
+import nltk.downloader
 nltk.data.path = [str(_NLTK_DIR)]
 
-# Download required NLTK packages to our temp directory BEFORE unstructured imports
+# Download NLTK packages to our temp directory
 try:
     nltk.download('punkt', download_dir=str(_NLTK_DIR), quiet=True)
     nltk.download('averaged_perceptron_tagger_eng', download_dir=str(_NLTK_DIR), quiet=True)
-except:
-    pass  # If download fails, unstructured will handle it
+except Exception as e:
+    print(f"NLTK download to {_NLTK_DIR} failed: {e}")
+
+# Monkeypatch unstructured's download function to prevent it from trying
+import sys
+import types
+unstructured_nlp = types.ModuleType('unstructured.nlp.tokenize')
+unstructured_nlp.download_nltk_packages = lambda: None  # Do nothing
+sys.modules['unstructured.nlp.tokenize'] = unstructured_nlp
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
