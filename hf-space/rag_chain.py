@@ -568,11 +568,16 @@ def make_rag_chain(retriever):
                         break
                 
                 context = "\n\n---\n\n".join(context_chunks)
-                llm_answer = _call_llm(question, context)
                 
-                # Accept answer if it's substantial and helpful
-                if llm_answer and len(llm_answer) > 30:
-                    return SimpleResponse(llm_answer)
+                try:
+                    llm_answer = _call_llm(question, context)
+                    
+                    # Accept answer if it's substantial and helpful
+                    if llm_answer and len(llm_answer) > 30:
+                        return SimpleResponse(llm_answer)
+                except Exception as e:
+                    print(f"[ERROR] LLM call failed: {e}")
+                    # Fall through to rule-based synthesis
 
             # Fallback to rule-based synthesis only if LLM fails
             synthesized = _synthesize_answer(question, final_docs)
