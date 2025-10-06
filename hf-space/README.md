@@ -39,3 +39,5 @@ AI-powered car manual assistant backend using FastAPI, LangChain, and RAG.
 ## Frontend
 
 Live at: https://manual-ai-psi.vercel.app
+
+# Rebuild trigger - 2025-10-06 08:11:41
