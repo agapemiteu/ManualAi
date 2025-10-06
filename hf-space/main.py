@@ -544,9 +544,10 @@ async def root():
 
 
 DOC_PATH = Path(os.getenv("MANUAL_PATH", "../data/README.md")).resolve()  # Use README instead of HTML
-UPLOAD_DIR = Path(os.getenv("MANUAL_UPLOAD_DIR", Path("../data/uploads"))).resolve()
-STORAGE_DIR = Path(os.getenv("MANUAL_STORAGE_DIR", Path("../data/manual_store"))).resolve()
+UPLOAD_DIR = Path(os.getenv("MANUAL_UPLOAD_DIR", "/tmp/manualai/uploads")).resolve()
+STORAGE_DIR = Path(os.getenv("MANUAL_STORAGE_DIR", "/tmp/manualai/manual_store")).resolve()
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Skip default manual loading - let users upload their own
 manual_manager = ManualManager.__new__(ManualManager)

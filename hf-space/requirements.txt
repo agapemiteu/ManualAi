@@ -1,3 +1,4 @@
+# Updated: 2025-10-06 - Force cache bust for permission fix
 fastapi
 uvicorn
 langchain-core==0.3.72

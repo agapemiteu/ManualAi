@@ -13,9 +13,8 @@ RUN apt-get update && apt-get install -y \
     libmagic1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Prepare writable directories
-RUN mkdir -p /data/manualai/uploads /data/manualai/manual_store /data/manualai/nltk_data /data/manualai/hf_cache \
-    && chmod -R 777 /data/manualai
+# Create writable directories in /tmp (always writable, no persistent storage issues)
+RUN mkdir -p /tmp/manualai/uploads /tmp/manualai/manual_store /tmp/manualai/nltk_data /tmp/manualai/hf_cache /tmp/matplotlib
 
 # Copy requirements
 COPY requirements.txt .
@@ -24,16 +23,21 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Download NLTK data needed by unstructured
-RUN python -c "import nltk; nltk.download('punkt', download_dir='/data/manualai/nltk_data'); nltk.download('averaged_perceptron_tagger_eng', download_dir='/data/manualai/nltk_data')"
+RUN python -c "import nltk; nltk.download('punkt', download_dir='/tmp/manualai/nltk_data'); nltk.download('averaged_perceptron_tagger_eng', download_dir='/tmp/manualai/nltk_data')"
 
-ENV NLTK_DATA=/data/manualai/nltk_data \
-    HF_HOME=/data/manualai/hf_cache \
-    TRANSFORMERS_CACHE=/data/manualai/hf_cache \
-    SENTENCE_TRANSFORMERS_HOME=/data/manualai/hf_cache \
-    HUGGINGFACE_HUB_CACHE=/data/manualai/hf_cache
+# Set all cache directories to /tmp to avoid permission issues
+ENV NLTK_DATA=/tmp/manualai/nltk_data \
+    HF_HOME=/tmp/manualai/hf_cache \
+    TRANSFORMERS_CACHE=/tmp/manualai/hf_cache \
+    SENTENCE_TRANSFORMERS_HOME=/tmp/manualai/hf_cache \
+    HUGGINGFACE_HUB_CACHE=/tmp/manualai/hf_cache \
+    MPLCONFIGDIR=/tmp/matplotlib
 
 # Copy application code
 COPY . .
+
+# Make startup script executable
+RUN chmod +x start.sh
 
 # Expose port (Hugging Face Spaces uses 7860)
 EXPOSE 7860
@@ -41,6 +45,7 @@ EXPOSE 7860
 # Set environment variables
 ENV PORT=7860
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
 
-# Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Run the application with cache cleanup
+CMD ["./start.sh"]
