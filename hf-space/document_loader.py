@@ -66,6 +66,48 @@ def _check_cancel(cancel_callback: Optional[Callable[[], bool]]) -> None:
 
 
 
+def _clean_text(text: str) -> str:
+    """Clean and normalize extracted text."""
+    if not text:
+        return ""
+    # Remove excessive whitespace
+    text = re.sub(r'\s+', ' ', text)
+    # Remove control characters
+    text = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f-\x9f]', '', text)
+    return text.strip()
+
+
+
+def _total_text_length(elements: Sequence[object]) -> int:
+    """Calculate total text length from elements."""
+    total = 0
+    for element in elements:
+        text = getattr(element, "text", "") or ""
+        total += len(text)
+    return total
+
+
+
+def _load_plain_text(path: Path) -> List[Document]:
+    """Load plain text files."""
+    try:
+        content = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        content = path.read_text(encoding="latin-1")
+    cleaned = _clean_text(content)
+    if not cleaned:
+        return []
+    return [Document(page_content=cleaned, metadata={"source": str(path)})]
+
+
+
+def _load_warning_tables(path: Path) -> List[Document]:
+    """Try to load structured warning/specification tables (placeholder)."""
+    # This is a placeholder for future structured data extraction
+    return []
+
+
+
 def _collect_page_lengths(elements: Sequence[object]) -> Dict[int, int]:
     lengths: Dict[int, int] = {}
     for element in elements:
@@ -214,17 +256,22 @@ def _run_ocr_on_images(images: Sequence[Tuple[int, bytes]], cancel_callback: Opt
 
 
 
-def _partition_pdf(path: Path, cancel_callback: Optional[Callable[[], bool]] = None):
+def _partition_pdf(path: Path, cancel_callback: Optional[Callable[[], bool]] = None, disable_ocr: bool = False):
     """Partition a PDF using the fast strategy with selective OCR fallbacks."""
     _check_cancel(cancel_callback)
 
     start_time = time.perf_counter()
-    logger.info("PDF %s: running fast partition", path)
+    logger.info("PDF %s: running fast partition (OCR %s)", path, "DISABLED" if disable_ocr else "enabled")
 
     fast_elements = partition_pdf(filename=str(path), strategy="fast")
     fast_text = _total_text_length(fast_elements)
     page_lengths = _collect_page_lengths(fast_elements)
     logger.info("PDF %s: fast strategy produced %s characters across %s pages", path, fast_text, len(page_lengths))
+
+    # If OCR is disabled, return fast results immediately
+    if disable_ocr:
+        logger.info("PDF %s: OCR disabled, returning fast partition results (%s chars)", path, fast_text)
+        return fast_elements
 
     text_replacements: List[_OCRElement] = []
     ocr_pages: List[int] = []
@@ -288,18 +335,21 @@ def _partition_pdf(path: Path, cancel_callback: Optional[Callable[[], bool]] = N
     return hi_res if hi_res_length > combined_length else combined
 
 
-def _partition_file(path: Path, cancel_callback: Optional[Callable[[], bool]] = None):
+def _partition_file(path: Path, cancel_callback: Optional[Callable[[], bool]] = None, disable_ocr: bool = False):
     suffix = path.suffix.lower()
     if suffix == ".pdf":
-        return _partition_pdf(path, cancel_callback=cancel_callback)
+        return _partition_pdf(path, cancel_callback=cancel_callback, disable_ocr=disable_ocr)
     _check_cancel(cancel_callback)
     if suffix in {".png", ".jpg", ".jpeg", ".heic", ".bmp", ".tif", ".tiff"}:
+        if disable_ocr:
+            logger.warning("Image file %s requires OCR but OCR is disabled", path)
+            return []
         return partition_image(filename=str(path))
     return partition(filename=str(path))
 
 
 
-def _load_pdf_fast(path: Path, cancel_callback: Optional[Callable[[], bool]] = None) -> List[Document]:
+def _load_pdf_fast(path: Path, cancel_callback: Optional[Callable[[], bool]] = None, disable_ocr: bool = False) -> List[Document]:
     try:
         import fitz  # type: ignore
     except ImportError as exc:
@@ -313,7 +363,7 @@ def _load_pdf_fast(path: Path, cancel_callback: Optional[Callable[[], bool]] = N
 
     with fitz.open(path) as pdf:
         total_pages = pdf.page_count
-        logger.info("PDF %s: fast pipeline opened with %s pages", path, total_pages)
+        logger.info("PDF %s: fast pipeline opened with %s pages (OCR %s)", path, total_pages, "DISABLED" if disable_ocr else "enabled")
         for index in range(total_pages):
             page_number = index + 1
             _check_cancel(cancel_callback)
@@ -323,9 +373,11 @@ def _load_pdf_fast(path: Path, cancel_callback: Optional[Callable[[], bool]] = N
             if cleaned:
                 page_texts[page_number] = cleaned
                 continue
-            ocr_targets.append(page_number)
+            # Skip OCR if disabled
+            if not disable_ocr:
+                ocr_targets.append(page_number)
 
-        if ocr_targets:
+        if ocr_targets and not disable_ocr:
             logger.info("PDF %s: %s pages require OCR in fast pipeline", path, len(ocr_targets))
             images: List[Tuple[int, bytes]] = []
             zoom = _OCR_DPI / 72
@@ -352,15 +404,15 @@ def _load_pdf_fast(path: Path, cancel_callback: Optional[Callable[[], bool]] = N
     logger.info("PDF %s: fast pipeline produced %s document chunks", path, len(documents))
     return documents
 
-def _load_unstructured(path: Path, cancel_callback: Optional[Callable[[], bool]] = None) -> List[Document]:
+def _load_unstructured(path: Path, cancel_callback: Optional[Callable[[], bool]] = None, disable_ocr: bool = False) -> List[Document]:
     suffix = path.suffix.lower()
     if suffix in {".txt", ".md"}:
         return _load_plain_text(path)
     if suffix == ".pdf":
-        fast_docs = _load_pdf_fast(path, cancel_callback=cancel_callback)
+        fast_docs = _load_pdf_fast(path, cancel_callback=cancel_callback, disable_ocr=disable_ocr)
         if fast_docs:
             return fast_docs
-    elements = _partition_file(path, cancel_callback=cancel_callback)
+    elements = _partition_file(path, cancel_callback=cancel_callback, disable_ocr=disable_ocr)
 
     docs: List[Document] = []
     buffer: List[str] = []
@@ -441,10 +493,19 @@ def _enrich_metadata(chunk: Document) -> Document:
     return chunk
 
 
-def load_manual(filepath: str, *, cancel_callback: Optional[Callable[[], bool]] = None) -> List[Document]:
-    """Load and process a car manual with intelligent chunking and metadata enrichment"""
+def load_manual(filepath: str, *, cancel_callback: Optional[Callable[[], bool]] = None, disable_ocr: bool = False) -> List[Document]:
+    """Load and process a car manual with intelligent chunking and metadata enrichment.
+    
+    Args:
+        filepath: Path to the manual file
+        cancel_callback: Callback to check if processing should be cancelled
+        disable_ocr: If True, skip OCR processing (text-only PDFs, faster on free tier)
+    """
     path = Path(filepath)
     _check_cancel(cancel_callback)
+    
+    if disable_ocr:
+        logger.info("Manual %s: OCR DISABLED - text-only mode", path)
 
     # Try to load structured warning tables first
     table_docs = _load_warning_tables(path)
@@ -454,7 +515,7 @@ def load_manual(filepath: str, *, cancel_callback: Optional[Callable[[], bool]] 
 
     # Load unstructured content
     _check_cancel(cancel_callback)
-    raw_docs = _load_unstructured(path, cancel_callback=cancel_callback)
+    raw_docs = _load_unstructured(path, cancel_callback=cancel_callback, disable_ocr=disable_ocr)
     if not raw_docs:
         return []
 

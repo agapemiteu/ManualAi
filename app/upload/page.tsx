@@ -128,6 +128,8 @@ const UploadPage: React.FC = () => {
   const [analysisResult, setAnalysisResult] = useState<PdfAnalysisResult | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const uploadRequestRef = useRef<XMLHttpRequest | null>(null);
+  const uploadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
@@ -291,6 +293,20 @@ const UploadPage: React.FC = () => {
     }
   }, [manualStatus]);
 
+  const cancelUpload = useCallback(() => {
+    const activeRequest = uploadRequestRef.current;
+    if (activeRequest) {
+      activeRequest.abort();
+    }
+    if (uploadTimeoutRef.current) {
+      clearTimeout(uploadTimeoutRef.current);
+      uploadTimeoutRef.current = null;
+    }
+    setUploadState("idle");
+    setProgress(0);
+    setMessage("Upload cancelled.");
+  }, []);
+
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!file) {
@@ -326,6 +342,37 @@ const UploadPage: React.FC = () => {
     try {
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
+        uploadRequestRef.current = xhr;
+        let settled = false;
+
+        const cleanup = () => {
+          if (uploadTimeoutRef.current) {
+            clearTimeout(uploadTimeoutRef.current);
+            uploadTimeoutRef.current = null;
+          }
+          if (uploadRequestRef.current === xhr) {
+            uploadRequestRef.current = null;
+          }
+        };
+
+        const settleResolve = () => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          cleanup();
+          resolve();
+        };
+
+        const settleReject = (err: Error) => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          cleanup();
+          reject(err);
+        };
+
         xhr.open("POST", `${API_URL}/api/manuals`);
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable) {
@@ -335,14 +382,14 @@ const UploadPage: React.FC = () => {
         };
         xhr.onload = () => {
           if (xhr.status === 202) {
-            resolve();
+            settleResolve();
           } else {
             let detail: string | undefined;
             try {
               const body = xhr.responseText ? JSON.parse(xhr.responseText) : null;
               detail = typeof body?.detail === 'string' ? body.detail : undefined;
             } catch {}
-            reject(new Error(detail || `Upload failed with status ${xhr.status}`));
+            settleReject(new Error(detail || `Upload failed with status ${xhr.status}`));
           }
         };
         xhr.onerror = () => {
@@ -351,18 +398,47 @@ const UploadPage: React.FC = () => {
             const body = xhr.responseText ? JSON.parse(xhr.responseText) : null;
             detail = typeof body?.detail === 'string' ? body.detail : undefined;
           } catch {}
-          reject(new Error(detail || "Upload failed"));
+          settleReject(new Error(detail || "Upload failed"));
+        };
+        xhr.onabort = () => {
+          settleReject(new Error("Upload cancelled by user."));
         };
         xhr.send(formData);
+
+        uploadTimeoutRef.current = setTimeout(() => {
+          if (uploadRequestRef.current === xhr && !settled) {
+            settleReject(new Error("Upload timed out."));
+            try {
+              xhr.abort();
+            } catch {
+              // ignore abort errors
+            }
+          }
+        }, 45000);
       });
 
       setUploadState("processing");
       startStatusPolling(manualId.trim());
     } catch (error) {
       console.error(error);
-      setUploadState("failed");
-      const detail = error instanceof Error ? error.message : "";
-      setMessage(detail || "Upload failed. Please try again.");
+      if (error instanceof Error) {
+        if (error.message === "Upload cancelled by user.") {
+          setUploadState("idle");
+          setProgress(0);
+          setManualStatus(null);
+          return;
+        }
+        if (error.message === "Upload timed out.") {
+          setUploadState("failed");
+          setMessage("Upload timed out. Please try again.");
+          return;
+        }
+        setUploadState("failed");
+        setMessage(error.message || "Upload failed. Please try again.");
+      } else {
+        setUploadState("failed");
+        setMessage("Upload failed. Please try again.");
+      }
     }
   };
 
