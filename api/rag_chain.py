@@ -1,7 +1,13 @@
 from typing import Any, Dict, List, Optional, Set, Tuple
 import re
+import os
 
 FALLBACK_MESSAGE = "I don't have that information in this manual. Could you rephrase your question or ask about something else?"
+
+# LLM Configuration
+USE_LLM = os.getenv("MANUAL_USE_LLM", "true").lower() == "true"
+LLM_API_URL = os.getenv("MANUAL_LLM_API_URL", "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct")
+LLM_API_KEY = os.getenv("HUGGINGFACE_TOKEN", os.getenv("HF_TOKEN", ""))
 
 # Common stop words to filter out for better keyword extraction
 STOP_WORDS = {
@@ -44,6 +50,55 @@ class ConversationMemory:
     def clear(self):
         """Clear conversation history"""
         self.history.clear()
+
+
+def _call_llm(prompt: str) -> str:
+    """Call HuggingFace Inference API for text generation"""
+    if not USE_LLM:
+        return ""
+    
+    try:
+        import requests
+        import json
+        
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        # Add auth token if available
+        if LLM_API_KEY:
+            headers["Authorization"] = f"Bearer {LLM_API_KEY}"
+        
+        payload = {
+            "inputs": prompt,
+            "parameters": {
+                "max_new_tokens": 250,
+                "temperature": 0.7,
+                "top_p": 0.9,
+                "return_full_text": False
+            }
+        }
+        
+        response = requests.post(
+            LLM_API_URL,
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            if isinstance(result, list) and len(result) > 0:
+                return result[0].get("generated_text", "").strip()
+            elif isinstance(result, dict):
+                return result.get("generated_text", "").strip()
+        else:
+            print(f"LLM API error: {response.status_code} - {response.text}")
+            return ""
+            
+    except Exception as e:
+        print(f"LLM call failed: {e}")
+        return ""
 
 
 def _post_process_text(text: str) -> Optional[str]:
@@ -242,9 +297,24 @@ def _synthesize_answer(question: str, docs: List[Any]) -> Optional[str]:
         best_match = ranked_content[0][0] if ranked_content else all_content[0]
         return f"This may not be exactly what you're looking for, but here's related information:\n\n{best_match}"
     
-    # For high-confidence single answer, return it directly
+    # For high-confidence single answer, enhance with LLM if enabled
     if len(relevant_content) == 1 or relevant_content[0][1] > 0.4:
         answer = relevant_content[0][0]
+        
+        # Try to enhance with LLM
+        if USE_LLM:
+            prompt = f"""Based on this car manual information, provide a clear, helpful answer to the user's question.
+
+Question: {question}
+
+Manual Information:
+{answer}
+
+Provide a concise, direct answer based ONLY on the information above. Do not add information not in the manual."""
+
+            llm_answer = _call_llm(prompt)
+            if llm_answer and len(llm_answer) > 50:
+                answer = llm_answer
         
         # Add safety context if relevant
         if question_context["safety_related"] and question_context["urgency"] == "high":
@@ -362,6 +432,52 @@ def _deduplicate_docs(docs: List[Any]) -> List[Any]:
     return unique_docs
 
 
+def _call_llm(question: str, context: str) -> Optional[str]:
+    """Call HuggingFace Inference API with Phi-3 mini model"""
+    if not USE_LLM or not LLM_API_KEY:
+        return None
+    
+    try:
+        import requests
+        
+        full_prompt = f"""You are a helpful car manual assistant. Answer the user's question based on the manual context provided.
+
+Context from manual:
+{context[:2000]}
+
+User question: {question}
+
+Provide a clear, concise answer based only on the context. If the context doesn't contain the answer, say so."""
+
+        headers = {"Authorization": f"Bearer {LLM_API_KEY}"}
+        payload = {
+            "inputs": full_prompt,
+            "parameters": {
+                "max_new_tokens": 250,
+                "temperature": 0.3,
+                "top_p": 0.9,
+                "do_sample": True
+            }
+        }
+        
+        response = requests.post(LLM_API_URL, headers=headers, json=payload, timeout=10)
+        
+        if response.status_code == 200:
+            result = response.json()
+            if isinstance(result, list) and len(result) > 0:
+                generated_text = result[0].get("generated_text", "")
+                # Extract only the answer part after the prompt
+                if "Provide a clear, concise answer" in generated_text:
+                    answer = generated_text.split("Provide a clear, concise answer")[-1].strip()
+                    return answer if answer else None
+                return generated_text
+        
+        return None
+    except Exception as e:
+        print(f"LLM call failed: {e}")
+        return None
+
+
 def make_rag_chain(retriever):
     class Chain:
         def __init__(self, retriever):
@@ -394,7 +510,14 @@ def make_rag_chain(retriever):
             if not final_docs:
                 return SimpleResponse(FALLBACK_MESSAGE)
 
-            # Try to synthesize a smart, context-aware answer
+            # Try LLM-based answer if enabled
+            if USE_LLM and LLM_API_KEY:
+                context = "\n\n".join([getattr(doc, "page_content", "")[:500] for doc in final_docs[:3]])
+                llm_answer = _call_llm(question, context)
+                if llm_answer and len(llm_answer) > 50:  # Valid answer
+                    return SimpleResponse(llm_answer)
+
+            # Fallback to rule-based synthesis
             synthesized = _synthesize_answer(question, final_docs)
             if synthesized:
                 return SimpleResponse(synthesized)

@@ -1,4 +1,4 @@
-# Updated: 2025-10-06 - Force cache bust for permission fix
+# Build: 2025-10-06-19:00 - Added LLM support with HuggingFace Inference API
 fastapi
 uvicorn
 langchain-core==0.3.72
@@ -13,3 +13,4 @@ sentence-transformers
 pymupdf
 pytesseract
 pillow
+requests
