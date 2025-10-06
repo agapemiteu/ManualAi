@@ -555,6 +555,8 @@ STORAGE_DIR = Path(os.getenv("MANUALAI_STORAGE_DIR", os.getenv("MANUAL_STORAGE_D
 # Create directories with robust error handling
 def _ensure_directory(path: Path, description: str) -> Path:
     """Ensure a directory exists, with fallback to app directory if permission denied."""
+    import tempfile
+    
     try:
         path.mkdir(parents=True, exist_ok=True)
         # Test write permissions
@@ -564,27 +566,35 @@ def _ensure_directory(path: Path, description: str) -> Path:
         logger.info(f"✅ {description}: {path}")
         return path
     except (PermissionError, OSError) as e:
-        # Fallback to /app/.manualai (app working directory is always writable)
-        fallback = Path("/app/.manualai") / path.name
-        logger.warning(f"⚠️  Permission denied for {path}, using fallback: {fallback}")
-        try:
-            fallback.mkdir(parents=True, exist_ok=True)
-            test_file = fallback / ".write_test"
-            test_file.touch()
-            test_file.unlink()
-            logger.info(f"✅ {description} (fallback): {fallback}")
-            return fallback
-        except Exception as fallback_error:
-            # Last resort: try /app subdirectory directly
-            final_fallback = Path("/app") / path.name
-            logger.error(f"❌ Fallback failed: {fallback_error}, trying /app/{path.name}")
+        logger.warning(f"⚠️  Cannot use {path}: {e}")
+        
+        # Try multiple fallback locations
+        fallback_attempts = [
+            Path("/app") / path.name,  # Try /app/uploads directly
+            Path.cwd() / path.name,  # Try current working directory
+            Path(tempfile.gettempdir()) / "manualai" / path.name,  # Use system temp
+        ]
+        
+        for fallback in fallback_attempts:
             try:
-                final_fallback.mkdir(parents=True, exist_ok=True)
-                logger.info(f"✅ {description} (final fallback): {final_fallback}")
-                return final_fallback
+                fallback.mkdir(parents=True, exist_ok=True)
+                test_file = fallback / ".write_test"
+                test_file.touch()
+                test_file.unlink()
+                logger.info(f"✅ {description} (fallback): {fallback}")
+                return fallback
             except Exception:
-                logger.error(f"❌ All fallbacks failed for {description}, using original path")
-                return path  # Return original path and hope for the best
+                continue
+        
+        # Absolute last resort: use tempfile.mkdtemp
+        logger.error(f"❌ All fallbacks failed for {description}, using temp directory")
+        try:
+            temp_dir = Path(tempfile.mkdtemp(prefix=f"manualai_{path.name}_"))
+            logger.info(f"✅ {description} (temp): {temp_dir}")
+            return temp_dir
+        except Exception as final_error:
+            logger.error(f"❌ Even temp directory failed: {final_error}")
+            return path  # Return original path and hope for the best
     except Exception as e:
         logger.warning(f"⚠️  Error creating {description}: {e}")
         return path
