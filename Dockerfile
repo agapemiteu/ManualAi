@@ -36,8 +36,8 @@ ENV NLTK_DATA=/tmp/manualai/nltk_data \
 # Copy application code
 COPY . .
 
-# Make startup script executable
-RUN chmod +x start.sh
+# Create runtime directories
+RUN mkdir -p /tmp/manualai/uploads /tmp/manualai/manual_store /tmp/ocr_cache /tmp/matplotlib
 
 # Expose port (Hugging Face Spaces uses 7860)
 EXPOSE 7860
@@ -47,5 +47,5 @@ ENV PORT=7860
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# Run the application with cache cleanup
-CMD ["./start.sh"]
+# Run the application directly
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
