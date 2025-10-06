@@ -433,32 +433,49 @@ def _deduplicate_docs(docs: List[Any]) -> List[Any]:
 
 
 def _call_llm(question: str, context: str) -> Optional[str]:
-    """Call HuggingFace Inference API with improved prompt for better answers"""
+    """Call HuggingFace Inference API with context-aware, intelligent synthesis"""
     if not USE_LLM or not LLM_API_KEY:
         return None
     
     try:
         import requests
         
-        # Enhanced prompt for better, more natural responses
+        # MUCH BETTER PROMPT: Understand user intent and synthesize information
         full_prompt = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
 
-You are an expert automotive assistant helping users understand their car manual. Your role is to:
-1. Provide accurate, helpful answers based on the manual content
-2. Be specific and reference relevant sections
-3. Explain technical terms in simple language
-4. Give practical, actionable advice
-5. If information is missing, suggest what the user should look for
+You are an intelligent automotive assistant who helps users understand and use their car manual effectively.
+
+YOUR APPROACH:
+1. **Understand the User's Intent**: What are they really trying to do? Fix something? Learn how to use a feature? Troubleshoot an issue?
+2. **Synthesize Information**: Don't just quote the manual - explain it in the context of what they're asking
+3. **Be Practical**: Give actionable steps, tips, and warnings
+4. **Explain WHY**: Help them understand the reasoning behind instructions
+5. **Anticipate Follow-ups**: Address related concerns they might have
+6. **Use Simple Language**: Translate technical jargon into plain English
+7. **Be Contextual**: Consider what a real person asking this question would need to know
+
+EXAMPLES OF GOOD ANSWERS:
+❌ BAD: "The manual says to check tire pressure monthly."
+✅ GOOD: "You should check your tire pressure at least once a month. This is important because properly inflated tires improve fuel efficiency, provide better handling, and last longer. The recommended pressure is usually on a sticker inside the driver's door. Check when tires are cold (haven't been driven for a few hours) for accurate readings."
+
+❌ BAD: "Section 3.2 covers this."
+✅ GOOD: "To change your tire, here's what you need to do: First, make sure you're on flat ground and the car is in park. Get your spare tire, jack, and lug wrench from the trunk. Loosen the lug nuts before jacking up the car, then..."
 
 <|eot_id|><|start_header_id|>user<|end_header_id|>
 
-Here is the relevant information from the car manual:
+RELEVANT MANUAL INFORMATION:
+{context[:2500]}
 
-{context[:2000]}
+USER'S QUESTION: {question}
 
-User question: {question}
+INSTRUCTIONS:
+1. First, understand what the user is REALLY asking (their intent and context)
+2. Synthesize the manual information to directly address their need
+3. Provide a complete, practical answer that makes sense in their situation
+4. Explain concepts clearly without just quoting the manual
+5. Include any relevant safety warnings or important tips
 
-Please provide a clear, helpful answer based on the manual information above.<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+Provide your answer now:<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 
 """
 
@@ -466,28 +483,32 @@ Please provide a clear, helpful answer based on the manual information above.<|e
         payload = {
             "inputs": full_prompt,
             "parameters": {
-                "max_new_tokens": 400,  # Increased for more complete answers
-                "temperature": 0.5,      # Balanced creativity
+                "max_new_tokens": 500,  # More space for comprehensive answers
+                "temperature": 0.6,      # Slightly more creative for better synthesis
                 "top_p": 0.92,
                 "do_sample": True,
-                "repetition_penalty": 1.1
+                "repetition_penalty": 1.15,  # Avoid repetition
+                "presence_penalty": 0.1      # Encourage diverse vocabulary
             }
         }
         
-        response = requests.post(LLM_API_URL, headers=headers, json=payload, timeout=15)
+        response = requests.post(LLM_API_URL, headers=headers, json=payload, timeout=20)
         
         if response.status_code == 200:
             result = response.json()
             if isinstance(result, list) and len(result) > 0:
                 generated_text = result[0].get("generated_text", "").strip()
-                # Clean up the response - remove any prompt artifacts
+                # Clean up the response
                 if generated_text:
-                    # Remove the prompt if model returned it
+                    # Remove prompt artifacts
                     if "<|start_header_id|>assistant<|end_header_id|>" in generated_text:
                         generated_text = generated_text.split("<|start_header_id|>assistant<|end_header_id|>")[-1].strip()
-                    # Remove end tokens
                     generated_text = generated_text.replace("<|eot_id|>", "").strip()
-                    return generated_text if len(generated_text) > 20 else None
+                    generated_text = generated_text.replace("<|end_of_text|>", "").strip()
+                    
+                    # Only return if it's a substantial, helpful answer
+                    if len(generated_text) > 30 and not generated_text.startswith("I don't"):
+                        return generated_text
         
         return None
     except Exception as e:
@@ -512,29 +533,48 @@ def make_rag_chain(retriever):
             # Expand query with synonyms for better retrieval
             expanded_queries = _expand_query(question)
             
-            # Retrieve documents using multiple query variations
+            # Retrieve documents using multiple query variations for better context
             all_docs = []
             for query in expanded_queries:
-                docs = list(self.retriever.invoke(query))[:5]
+                docs = list(self.retriever.invoke(query))[:6]
                 all_docs.extend(docs)
             
             # Remove duplicates
             unique_docs = _deduplicate_docs(all_docs)
             
-            # Limit to top 7 most relevant documents
-            final_docs = unique_docs[:7]
+            # Get more context for LLM to understand better
+            final_docs = unique_docs[:10]
             
             if not final_docs:
                 return SimpleResponse(FALLBACK_MESSAGE)
 
-            # Try LLM-based answer if enabled
+            # Try LLM-based answer with RICH CONTEXT for intelligent synthesis
             if USE_LLM and LLM_API_KEY:
-                context = "\n\n".join([getattr(doc, "page_content", "")[:500] for doc in final_docs[:3]])
+                # Provide MORE context so LLM can understand and synthesize better
+                # Include full chunks, not truncated
+                context_chunks = []
+                total_length = 0
+                for doc in final_docs[:5]:  # Top 5 most relevant chunks
+                    content = getattr(doc, "page_content", "")
+                    # Include full content up to reasonable limit
+                    if total_length + len(content) < 2500:
+                        context_chunks.append(content)
+                        total_length += len(content)
+                    else:
+                        # Add partial if we have room
+                        remaining = 2500 - total_length
+                        if remaining > 100:
+                            context_chunks.append(content[:remaining])
+                        break
+                
+                context = "\n\n---\n\n".join(context_chunks)
                 llm_answer = _call_llm(question, context)
-                if llm_answer and len(llm_answer) > 50:  # Valid answer
+                
+                # Accept answer if it's substantial and helpful
+                if llm_answer and len(llm_answer) > 30:
                     return SimpleResponse(llm_answer)
 
-            # Fallback to rule-based synthesis
+            # Fallback to rule-based synthesis only if LLM fails
             synthesized = _synthesize_answer(question, final_docs)
             if synthesized:
                 return SimpleResponse(synthesized)
