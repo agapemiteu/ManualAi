@@ -20,7 +20,9 @@ headers = {
 variables = [
     {"key": "MANUAL_DISABLE_OCR", "value": "true"},
     {"key": "MANUAL_INGESTION_TIMEOUT", "value": "120"},
-    {"key": "MANUALAI_LOG_LEVEL", "value": "INFO"}
+    {"key": "MANUALAI_LOG_LEVEL", "value": "INFO"},
+    {"key": "MANUAL_USE_LLM", "value": "true"},
+    {"key": "HF_TOKEN", "value": token}  # For Inference API
 ]
 
 print("=" * 70)
