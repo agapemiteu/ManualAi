@@ -39,14 +39,22 @@ _MIN_PAGE_TEXT = 64
 _OCR_DPI = int(os.getenv("MANUAL_OCR_DPI", "170"))
 _OCR_MAX_WORKERS = max(1, min(int(os.getenv("MANUAL_OCR_WORKERS", str(os.cpu_count() or 1))), 6))
 
-# Use /tmp for OCR cache since /data might not have write permissions
-import tempfile
-_OCR_CACHE_DIR = Path(os.getenv("MANUAL_OCR_CACHE_DIR", tempfile.gettempdir() + "/ocr_cache"))
-try:
-    _OCR_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-except (PermissionError, OSError) as e:
-    logger.warning(f"Could not create OCR cache dir {_OCR_CACHE_DIR}: {e}, using temp dir")
-    _OCR_CACHE_DIR = Path(tempfile.mkdtemp(prefix="ocr_cache_"))
+# Lazy initialization of OCR cache dir to avoid permission errors at module import time
+_OCR_CACHE_DIR = None
+
+def _get_ocr_cache_dir():
+    """Get or create OCR cache directory - uses /tmp to avoid permission issues."""
+    global _OCR_CACHE_DIR
+    if _OCR_CACHE_DIR is None:
+        import tempfile
+        cache_path = Path(os.getenv("MANUAL_OCR_CACHE_DIR", tempfile.gettempdir() + "/ocr_cache"))
+        try:
+            cache_path.mkdir(parents=True, exist_ok=True)
+            _OCR_CACHE_DIR = cache_path
+        except (PermissionError, OSError) as e:
+            logger.warning(f"Could not create OCR cache dir {cache_path}: {e}, using temp dir")
+            _OCR_CACHE_DIR = Path(tempfile.mkdtemp(prefix="ocr_cache_"))
+    return _OCR_CACHE_DIR
 
 _OCR_TIMEOUT = float(os.getenv("MANUAL_OCR_TIMEOUT", "12.0"))
 _OCR_CONFIG = os.getenv("MANUAL_OCR_CONFIG", "--psm 6 --oem 1")
@@ -210,7 +218,7 @@ def _run_ocr_on_images(images: Sequence[Tuple[int, bytes]], cancel_callback: Opt
     def worker(page_number: int, png_bytes: bytes) -> Tuple[int, str]:
         _check_cancel(cancel_callback)
         digest = hashlib.md5(png_bytes).hexdigest()
-        cache_path = _OCR_CACHE_DIR / f"{digest}.txt"
+        cache_path = _get_ocr_cache_dir() / f"{digest}.txt"
         if cache_path.exists():
             try:
                 cached = cache_path.read_text(encoding="utf-8").strip()
