@@ -4,9 +4,9 @@ import os
 
 FALLBACK_MESSAGE = "I don't have that information in this manual. Could you rephrase your question or ask about something else?"
 
-# LLM Configuration
+# LLM Configuration - Upgraded to Llama 3.1 8B for better intelligence!
 USE_LLM = os.getenv("MANUAL_USE_LLM", "true").lower() == "true"
-LLM_API_URL = os.getenv("MANUAL_LLM_API_URL", "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct")
+LLM_API_URL = os.getenv("MANUAL_LLM_API_URL", "https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3.1-8B-Instruct")
 LLM_API_KEY = os.getenv("HUGGINGFACE_TOKEN", os.getenv("HF_TOKEN", ""))
 
 # Common stop words to filter out for better keyword extraction
@@ -433,44 +433,61 @@ def _deduplicate_docs(docs: List[Any]) -> List[Any]:
 
 
 def _call_llm(question: str, context: str) -> Optional[str]:
-    """Call HuggingFace Inference API with Phi-3 mini model"""
+    """Call HuggingFace Inference API with improved prompt for better answers"""
     if not USE_LLM or not LLM_API_KEY:
         return None
     
     try:
         import requests
         
-        full_prompt = f"""You are a helpful car manual assistant. Answer the user's question based on the manual context provided.
+        # Enhanced prompt for better, more natural responses
+        full_prompt = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
 
-Context from manual:
+You are an expert automotive assistant helping users understand their car manual. Your role is to:
+1. Provide accurate, helpful answers based on the manual content
+2. Be specific and reference relevant sections
+3. Explain technical terms in simple language
+4. Give practical, actionable advice
+5. If information is missing, suggest what the user should look for
+
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+Here is the relevant information from the car manual:
+
 {context[:2000]}
 
 User question: {question}
 
-Provide a clear, concise answer based only on the context. If the context doesn't contain the answer, say so."""
+Please provide a clear, helpful answer based on the manual information above.<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+"""
 
         headers = {"Authorization": f"Bearer {LLM_API_KEY}"}
         payload = {
             "inputs": full_prompt,
             "parameters": {
-                "max_new_tokens": 250,
-                "temperature": 0.3,
-                "top_p": 0.9,
-                "do_sample": True
+                "max_new_tokens": 400,  # Increased for more complete answers
+                "temperature": 0.5,      # Balanced creativity
+                "top_p": 0.92,
+                "do_sample": True,
+                "repetition_penalty": 1.1
             }
         }
         
-        response = requests.post(LLM_API_URL, headers=headers, json=payload, timeout=10)
+        response = requests.post(LLM_API_URL, headers=headers, json=payload, timeout=15)
         
         if response.status_code == 200:
             result = response.json()
             if isinstance(result, list) and len(result) > 0:
-                generated_text = result[0].get("generated_text", "")
-                # Extract only the answer part after the prompt
-                if "Provide a clear, concise answer" in generated_text:
-                    answer = generated_text.split("Provide a clear, concise answer")[-1].strip()
-                    return answer if answer else None
-                return generated_text
+                generated_text = result[0].get("generated_text", "").strip()
+                # Clean up the response - remove any prompt artifacts
+                if generated_text:
+                    # Remove the prompt if model returned it
+                    if "<|start_header_id|>assistant<|end_header_id|>" in generated_text:
+                        generated_text = generated_text.split("<|start_header_id|>assistant<|end_header_id|>")[-1].strip()
+                    # Remove end tokens
+                    generated_text = generated_text.replace("<|eot_id|>", "").strip()
+                    return generated_text if len(generated_text) > 20 else None
         
         return None
     except Exception as e:
