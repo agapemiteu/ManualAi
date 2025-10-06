@@ -76,7 +76,7 @@ function formatBytes(size: number): string {
 
 async function analyzePdf(file: File): Promise<PdfAnalysisResult | null> {
   try {
-    const pdfjsModule = await import("pdfjs-dist/build/pdf");
+    const pdfjsModule = await import("pdfjs-dist");
     const pdfjsLib: any = pdfjsModule;
     if (pdfjsLib.GlobalWorkerOptions && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
       pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
@@ -135,7 +135,7 @@ const UploadPage: React.FC = () => {
         clearInterval(pollingRef.current);
       }
     };
-  }, [analyzePdf]);
+  }, []);
 
   const handleFileSelection = useCallback(async (selectedFile: File | null) => {
     if (!selectedFile) {
@@ -180,7 +180,7 @@ const UploadPage: React.FC = () => {
     } else {
       setAnalysisState("idle");
     }
-  }, [analyzePdf]);
+  }, []);
 
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -234,7 +234,7 @@ const UploadPage: React.FC = () => {
 
     pollingRef.current = setInterval(poll, 2000);
     poll();
-  }, [analyzePdf]);
+  }, []);
 
   const cancelManual = useCallback(async () => {
     if (!manualStatus) {
