@@ -51,9 +51,9 @@ load_dotenv(dotenv_path, override=True)
 logger = logging.getLogger(__name__)
 
 # Lazy loading functions
-def load_manual(path, *, cancel_callback=None):
+def load_manual(path, *, cancel_callback=None, disable_ocr=False):
     from document_loader import load_manual as _load_manual
-    return _load_manual(path, cancel_callback=cancel_callback)
+    return _load_manual(path, cancel_callback=cancel_callback, disable_ocr=disable_ocr)
 
 def make_rag_chain(retriever):
     from rag_chain import make_rag_chain as _make_rag_chain
