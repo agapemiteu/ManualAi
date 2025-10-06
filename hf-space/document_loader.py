@@ -12,8 +12,8 @@ from types import SimpleNamespace
 from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 from xml.etree import ElementTree as ET
 
-# CRITICAL: Set NLTK_DATA before ANY imports that might use NLTK
-# This prevents unstructured from using the persistent /nltk_data directory
+# CRITICAL: Set NLTK_DATA and download packages BEFORE importing unstructured
+# unstructured calls download_nltk_packages() at import time, so we must do this first
 import tempfile
 _NLTK_DIR = Path(os.getenv("NLTK_DATA", tempfile.gettempdir() + "/manualai_nltk"))
 try:
@@ -23,9 +23,16 @@ except:
 
 os.environ["NLTK_DATA"] = str(_NLTK_DIR)
 
-# Now it's safe to import NLTK and set its data path
+# Import NLTK and download packages to our directory
 import nltk
 nltk.data.path = [str(_NLTK_DIR)]
+
+# Download required NLTK packages to our temp directory BEFORE unstructured imports
+try:
+    nltk.download('punkt', download_dir=str(_NLTK_DIR), quiet=True)
+    nltk.download('averaged_perceptron_tagger_eng', download_dir=str(_NLTK_DIR), quiet=True)
+except:
+    pass  # If download fails, unstructured will handle it
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
