@@ -38,8 +38,16 @@ _MIN_FAST_TEXT = 100
 _MIN_PAGE_TEXT = 64
 _OCR_DPI = int(os.getenv("MANUAL_OCR_DPI", "170"))
 _OCR_MAX_WORKERS = max(1, min(int(os.getenv("MANUAL_OCR_WORKERS", str(os.cpu_count() or 1))), 6))
-_OCR_CACHE_DIR = Path(os.getenv("MANUAL_OCR_CACHE_DIR", "../data/manual_store/ocr_cache")).resolve()
-_OCR_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+# Use /tmp for OCR cache since /data might not have write permissions
+import tempfile
+_OCR_CACHE_DIR = Path(os.getenv("MANUAL_OCR_CACHE_DIR", tempfile.gettempdir() + "/ocr_cache"))
+try:
+    _OCR_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+except (PermissionError, OSError) as e:
+    logger.warning(f"Could not create OCR cache dir {_OCR_CACHE_DIR}: {e}, using temp dir")
+    _OCR_CACHE_DIR = Path(tempfile.mkdtemp(prefix="ocr_cache_"))
+
 _OCR_TIMEOUT = float(os.getenv("MANUAL_OCR_TIMEOUT", "12.0"))
 _OCR_CONFIG = os.getenv("MANUAL_OCR_CONFIG", "--psm 6 --oem 1")
 
