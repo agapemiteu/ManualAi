@@ -67,6 +67,10 @@ DEFAULT_MANUAL_BRAND = os.getenv("DEFAULT_MANUAL_BRAND", "default")
 CORS_ALLOW_ORIGINS = os.getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
 ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOW_ORIGINS.split(",") if origin.strip()]
 
+# Ingestion timeout and OCR control
+MANUAL_INGESTION_TIMEOUT = float(os.getenv("MANUAL_INGESTION_TIMEOUT", "180"))  # 3 minutes
+MANUAL_DISABLE_OCR = os.getenv("MANUAL_DISABLE_OCR", "false").lower() in ("true", "1", "yes")
+
 
 class ManualStatus(str, Enum):
     PROCESSING = "processing"
@@ -122,10 +126,6 @@ class ManualManager:
         self._cancel_events: Dict[str, Event] = {}
         self._cancelled: Set[str] = set()
 
-    def _set_status_message(self, manual_id: str, message: str) -> None:
-        with self._lock:
-            self._errors[manual_id] = message
-
         self.default_manual_id = default_manual_id
         self.upload_dir = upload_dir
         self.storage_dir = storage_dir
@@ -149,6 +149,10 @@ class ManualManager:
             cancel_event = self._cancel_events.setdefault(default_manual_id, Event())
             cancel_event.clear()
             self._ingest_manual(meta, cancel_event, recreate=True)
+
+    def _set_status_message(self, manual_id: str, message: str) -> None:
+        with self._lock:
+            self._errors[manual_id] = message
 
     def _persist_path(self, manual_id: str, version: Optional[str] = None) -> Path:
         token = version or uuid4().hex
@@ -202,20 +206,28 @@ class ManualManager:
         payload = json.dumps({"manuals": ready_entries}, indent=2)
         self.manifest_path.write_text(payload, encoding="utf-8")
 
-    def remove_manual(self, manual_id: str) -> ManualStatus:
+    def remove_manual(self, manual_id: str, force: bool = False) -> ManualStatus:
+        """Remove a manual. If force=True, forcefully removes even if processing."""
         with self._lock:
             status = self._statuses.get(manual_id)
             if status is None:
                 raise KeyError(manual_id)
+            
             if status is ManualStatus.PROCESSING:
                 self._cancelled.add(manual_id)
+                if force:
+                    logger.warning("Manual %s: FORCE removing stuck job", manual_id)
+                    
             cancel_event = self._cancel_events.get(manual_id)
             if cancel_event is not None:
                 cancel_event.set()
+                
+            # Always remove from tracking dicts when force=True
             entry = self._entries.pop(manual_id, None)
             meta = self._metas.pop(manual_id, None)
             self._statuses.pop(manual_id, None)
             self._errors.pop(manual_id, None)
+            self._cancel_events.pop(manual_id, None)
 
         if entry is not None:
             try:
@@ -233,7 +245,7 @@ class ManualManager:
         upload_path = self.upload_dir / manual_id
         shutil.rmtree(upload_path, ignore_errors=True)
         self._save_manifest()
-        self._cancel_events.pop(manual_id, None)
+        logger.info("Manual %s: removed (force=%s, status=%s)", manual_id, force, status)
         return status
 
     def cancel_ingestion(self, manual_id: str) -> ManualStatus:
@@ -269,46 +281,40 @@ class ManualManager:
         manual_path = manual_path.resolve()
         persist_path = self._persist_path(manual_id)
 
+        existing_entry: Optional[ManualEntry] = None
+
         with self._lock:
             current_status = self._statuses.get(manual_id)
+            self._errors.pop(manual_id, None)
+
             if current_status is ManualStatus.PROCESSING:
-                raise ValueError(f"Manual '{manual_id}' is still processing.")
-            if current_status is ManualStatus.READY:
+                if not replace_existing:
+                    raise ValueError(f"Manual '{manual_id}' is still processing.")
+                logger.info("Manual %s: cancelling in-flight ingestion prior to replace", manual_id)
+                previous_event = self._cancel_events.get(manual_id)
+                if previous_event is not None:
+                    previous_event.set()
+                self._cancelled.add(manual_id)
+                existing_entry = self._entries.pop(manual_id, None)
+                self._metas.pop(manual_id, None)
+                self._statuses.pop(manual_id, None)
+            elif current_status is ManualStatus.READY:
                 if not replace_existing:
                     raise ValueError(f"Manual '{manual_id}' already exists.")
                 existing_entry = self._entries.pop(manual_id, None)
                 self._metas.pop(manual_id, None)
                 self._statuses.pop(manual_id, None)
-                self._errors.pop(manual_id, None)
-                if existing_entry is not None:
-                    try:
-                        existing_entry.vector_store.delete_collection()
-                    except Exception:  # pragma: no cover - best effort cleanup
-                        pass
-                    try:
-                        existing_entry.vector_store._client.reset()
-                    except Exception:  # pragma: no cover - best effort cleanup
-                        pass
-                    try:
-                        old_root = Path(existing_entry.metadata.persist_path).parent
-                        shutil.rmtree(old_root, ignore_errors=True)
-                    except Exception:  # pragma: no cover - best effort cleanup
-                        pass
+            elif current_status is ManualStatus.FAILED:
+                self._metas.pop(manual_id, None)
+                self._statuses.pop(manual_id, None)
+
+            cancel_event = Event()
+            self._cancel_events[manual_id] = cancel_event
+            self._cancelled.discard(manual_id)
 
             brand_value = (brand or "").strip() or DEFAULT_MANUAL_BRAND
             model_value = (model or "").strip() or None
             year_value = (year or "").strip() or None
-
-            self._errors.pop(manual_id, None)
-
-            self._cancelled.discard(manual_id)
-
-            cancel_event = self._cancel_events.get(manual_id)
-            if cancel_event is None:
-                cancel_event = Event()
-                self._cancel_events[manual_id] = cancel_event
-            else:
-                cancel_event.clear()
 
             meta = ManualMetadata(
                 manual_id=manual_id,
@@ -323,6 +329,21 @@ class ManualManager:
             self._metas[manual_id] = meta
             self._statuses[manual_id] = ManualStatus.PROCESSING
 
+        if existing_entry is not None:
+            try:
+                existing_entry.vector_store.delete_collection()
+            except Exception:  # pragma: no cover - best effort cleanup
+                pass
+            try:
+                existing_entry.vector_store._client.reset()
+            except Exception:  # pragma: no cover - best effort cleanup
+                pass
+            try:
+                old_root = Path(existing_entry.metadata.persist_path).parent
+                shutil.rmtree(old_root, ignore_errors=True)
+            except Exception:  # pragma: no cover - best effort cleanup
+                pass
+
         if background_tasks is not None:
             logger.info("Manual %s: queued for background ingestion", manual_id)
             background_tasks.add_task(self._background_ingest, meta, cancel_event)
@@ -333,23 +354,57 @@ class ManualManager:
         return ManualStatus.PROCESSING
 
     def _background_ingest(self, meta: ManualMetadata, cancel_event: Event) -> None:
-        logger.info("Manual %s: background ingestion worker started", meta.manual_id)
-        try:
-            self._ingest_manual(meta, cancel_event, recreate=True)
-        except ManualCancelledError:
-            logger.info("Manual '%s' ingestion was cancelled", meta.manual_id)
-        except Exception:  # pragma: no cover - logged upstream
-            logger.exception("Background ingestion failed for manual '%s'", meta.manual_id)
+        """Background worker with timeout protection."""
+        logger.info("Manual %s: background ingestion started (timeout=%.0fs, ocr_disabled=%s)", 
+                    meta.manual_id, MANUAL_INGESTION_TIMEOUT, MANUAL_DISABLE_OCR)
+        
+        import threading
+        result_container = [None]  # Store result or exception
+        
+        def worker():
+            try:
+                self._ingest_manual(meta, cancel_event, recreate=True)
+                result_container[0] = ("success", None)
+            except ManualCancelledError as exc:
+                logger.info("Manual '%s' ingestion was cancelled", meta.manual_id)
+                result_container[0] = ("cancelled", exc)
+            except Exception as exc:
+                logger.exception("Background ingestion failed for manual '%s'", meta.manual_id)
+                result_container[0] = ("error", exc)
+        
+        thread = threading.Thread(target=worker, daemon=True)
+        thread.start()
+        thread.join(timeout=MANUAL_INGESTION_TIMEOUT)
+        
+        if thread.is_alive():
+            # Timeout exceeded - force fail
+            cancel_event.set()
+            logger.error("Manual %s: TIMEOUT after %.0fs - forcing failure", meta.manual_id, MANUAL_INGESTION_TIMEOUT)
+            
+            with self._lock:
+                self._statuses[meta.manual_id] = ManualStatus.FAILED
+                self._errors[meta.manual_id] = (
+                    f"Processing timeout after {int(MANUAL_INGESTION_TIMEOUT)}s. "
+                    f"PDF too complex for free tier. Try: 1) Force delete this job, "
+                    f"2) Use text-only PDF, or 3) Set MANUAL_DISABLE_OCR=true"
+                )
+                self._cancelled.add(meta.manual_id)
+            
+            # Give 5s grace period for cleanup
+            thread.join(timeout=5.0)
+            if thread.is_alive():
+                logger.warning("Manual %s: worker still hung after grace period", meta.manual_id)
 
     def _ingest_manual(self, meta: ManualMetadata, cancel_event: Event, recreate: bool = False) -> None:
         from document_loader import ManualLoadCancelledError  # Imported lazily to avoid circular deps
 
         start_time = time.perf_counter()
-        logger.info("Manual %s: ingestion started (source=%s)", meta.manual_id, meta.source_path)
+        logger.info("Manual %s: ingestion started (source=%s, ocr_disabled=%s)", 
+                    meta.manual_id, meta.source_path, MANUAL_DISABLE_OCR)
         self._set_status_message(meta.manual_id, "Loading manual text...")
 
         try:
-            docs = load_manual(meta.source_path, cancel_callback=cancel_event.is_set)
+            docs = load_manual(meta.source_path, cancel_callback=cancel_event.is_set, disable_ocr=MANUAL_DISABLE_OCR)
             if not docs:
                 raise ValueError("No readable content found in the supplied manual.")
 
@@ -636,11 +691,13 @@ async def get_system_logs(limit: int = 200) -> Dict[str, List[str]]:
 
 
 @app.delete("/api/manuals/{manual_id}", status_code=204)
-async def delete_manual(manual_id: str) -> Response:
+async def delete_manual(manual_id: str, force: bool = False) -> Response:
+    """Delete a manual. Use ?force=true to forcefully remove stuck processing jobs."""
     try:
-        manual_manager.remove_manual(manual_id)
+        manual_manager.remove_manual(manual_id, force=force)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=f"Manual '{exc.args[0]}' not found.") from exc
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     return Response(status_code=204)
+
