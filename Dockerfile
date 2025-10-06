@@ -22,16 +22,16 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Download NLTK data needed by unstructured
-RUN python -c "import nltk; nltk.download('punkt', download_dir='/tmp/manualai/nltk_data'); nltk.download('averaged_perceptron_tagger_eng', download_dir='/tmp/manualai/nltk_data')"
-
-# Set all cache directories to /tmp to avoid permission issues
+# Set all cache directories to /tmp BEFORE installing packages
 ENV NLTK_DATA=/tmp/manualai/nltk_data \
     HF_HOME=/tmp/manualai/hf_cache \
     TRANSFORMERS_CACHE=/tmp/manualai/hf_cache \
     SENTENCE_TRANSFORMERS_HOME=/tmp/manualai/hf_cache \
     HUGGINGFACE_HUB_CACHE=/tmp/manualai/hf_cache \
     MPLCONFIGDIR=/tmp/matplotlib
+
+# Download NLTK data needed by unstructured (with env var set)
+RUN python -c "import nltk; nltk.download('punkt'); nltk.download('averaged_perceptron_tagger_eng')"
 
 # Copy application code
 COPY . .
