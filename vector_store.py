@@ -1,24 +1,33 @@
-from functools import lru_cache
-from pathlib import Path
-from typing import List, Optional
-import shutil
 import os
 import tempfile
+from pathlib import Path
 
-from langchain_chroma import Chroma
-from sentence_transformers import SentenceTransformer
-
-# Ensure HuggingFace cache uses a writable directory
+# CRITICAL: Set HuggingFace cache BEFORE any imports
+# This must happen before sentence_transformers or any HF library imports
 _HF_CACHE = Path(os.getenv("HF_HOME", tempfile.gettempdir() + "/manualai_hf_cache"))
 try:
     _HF_CACHE.mkdir(parents=True, exist_ok=True)
+    # Test write permissions
+    test_file = _HF_CACHE / ".write_test"
+    test_file.touch()
+    test_file.unlink()
 except:
+    # Fallback: tempfile.mkdtemp() ALWAYS works
     _HF_CACHE = Path(tempfile.mkdtemp(prefix="manualai_hf_cache_"))
 
+# Set ALL HuggingFace cache env vars
 os.environ["HF_HOME"] = str(_HF_CACHE)
 os.environ["TRANSFORMERS_CACHE"] = str(_HF_CACHE)
 os.environ["SENTENCE_TRANSFORMERS_HOME"] = str(_HF_CACHE)
 os.environ["HUGGINGFACE_HUB_CACHE"] = str(_HF_CACHE)
+
+# NOW import HuggingFace libraries - they'll use our cache
+from functools import lru_cache
+from typing import List, Optional
+import shutil
+
+from langchain_chroma import Chroma
+from sentence_transformers import SentenceTransformer
 
 
 @lru_cache(maxsize=1)
