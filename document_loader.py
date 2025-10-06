@@ -47,13 +47,31 @@ def _get_ocr_cache_dir():
     global _OCR_CACHE_DIR
     if _OCR_CACHE_DIR is None:
         import tempfile
-        cache_path = Path(os.getenv("MANUAL_OCR_CACHE_DIR", tempfile.gettempdir() + "/ocr_cache"))
+        cache_path = Path(os.getenv("MANUALAI_OCR_CACHE", os.getenv("MANUAL_OCR_CACHE_DIR", tempfile.gettempdir() + "/ocr_cache")))
         try:
             cache_path.mkdir(parents=True, exist_ok=True)
+            # Test write permissions
+            test_file = cache_path / ".write_test"
+            test_file.touch()
+            test_file.unlink()
             _OCR_CACHE_DIR = cache_path
+            logger.info(f"✅ OCR cache directory: {cache_path}")
         except (PermissionError, OSError) as e:
-            logger.warning(f"Could not create OCR cache dir {cache_path}: {e}, using temp dir")
-            _OCR_CACHE_DIR = Path(tempfile.mkdtemp(prefix="ocr_cache_"))
+            # Fallback to home directory
+            fallback = Path.home() / ".manualai" / "ocr_cache"
+            logger.warning(f"⚠️  Could not use {cache_path}: {e}, trying fallback: {fallback}")
+            try:
+                fallback.mkdir(parents=True, exist_ok=True)
+                test_file = fallback / ".write_test"
+                test_file.touch()
+                test_file.unlink()
+                _OCR_CACHE_DIR = fallback
+                logger.info(f"✅ OCR cache directory (fallback): {fallback}")
+            except Exception as fallback_error:
+                # Last resort: use temp directory
+                logger.warning(f"⚠️  Fallback also failed: {fallback_error}, using temporary directory")
+                _OCR_CACHE_DIR = Path(tempfile.mkdtemp(prefix="ocr_cache_"))
+                logger.info(f"✅ OCR cache directory (temp): {_OCR_CACHE_DIR}")
     return _OCR_CACHE_DIR
 
 _OCR_TIMEOUT = float(os.getenv("MANUAL_OCR_TIMEOUT", "12.0"))

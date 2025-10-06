@@ -36,9 +36,8 @@ ENV NLTK_DATA=/tmp/manualai/nltk_data \
 # Copy application code
 COPY . .
 
-# Create runtime directories and set permissions for HuggingFace Spaces non-root user
-RUN mkdir -p /tmp/manualai/uploads /tmp/manualai/manual_store /tmp/ocr_cache /tmp/matplotlib && \
-    chmod -R 777 /tmp/manualai /tmp/ocr_cache /tmp/matplotlib
+# Make startup script executable
+RUN chmod +x startup.py 2>/dev/null || true
 
 # Expose port (Hugging Face Spaces uses 7860)
 EXPOSE 7860
@@ -48,5 +47,6 @@ ENV PORT=7860
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# Run the application directly with a startup script that ensures directories exist
-CMD sh -c "mkdir -p /tmp/manualai/uploads /tmp/manualai/manual_store /tmp/ocr_cache /tmp/matplotlib && chmod -R 777 /tmp/manualai /tmp/ocr_cache /tmp/matplotlib 2>/dev/null || true && uvicorn main:app --host 0.0.0.0 --port 7860"
+# Run startup checks then start the application
+# The Python code itself handles directory creation with fallbacks
+CMD python startup.py && uvicorn main:app --host 0.0.0.0 --port 7860
