@@ -549,9 +549,9 @@ def make_rag_chain(retriever):
                 return SimpleResponse(FALLBACK_MESSAGE)
 
             # Try LLM-based answer with RICH CONTEXT for intelligent synthesis
-            print(f"[DEBUG] USE_LLM={USE_LLM}, has_key={bool(LLM_API_KEY)}")
+            print(f"[DEBUG] USE_LLM={USE_LLM}, has_key={bool(LLM_API_KEY)}, final_docs={len(final_docs)}")
             if USE_LLM and LLM_API_KEY:
-                print("[DEBUG] Using intelligent LLM path")
+                print(f"[DEBUG] Using intelligent LLM path with Mistral 7B")
                 # Provide MORE context so LLM can understand and synthesize better
                 # Include full chunks, not truncated
                 context_chunks = []
@@ -570,15 +570,22 @@ def make_rag_chain(retriever):
                         break
                 
                 context = "\n\n---\n\n".join(context_chunks)
+                print(f"[DEBUG] Context length: {len(context)} chars, calling Mistral...")
                 
                 try:
                     llm_answer = _call_llm(question, context)
+                    print(f"[DEBUG] LLM answer received: {llm_answer[:100] if llm_answer else 'None'}...")
                     
                     # Accept answer if it's substantial and helpful
                     if llm_answer and len(llm_answer) > 30:
+                        print(f"[DEBUG] Returning LLM answer ({len(llm_answer)} chars)")
                         return SimpleResponse(llm_answer)
+                    else:
+                        print(f"[DEBUG] LLM answer too short or None, falling back")
                 except Exception as e:
-                    print(f"[ERROR] LLM call failed: {e}")
+                    print(f"[ERROR] LLM call exception: {e}")
+                    import traceback
+                    traceback.print_exc()
                     # Fall through to rule-based synthesis
 
             # Fallback to rule-based synthesis only if LLM fails
