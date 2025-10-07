@@ -94,26 +94,6 @@ Next.js Frontend → FastAPI Backend → ChromaDB → Groq API (Llama 3.1 8B)
 
 ---
 
-## 📁 Project Structure
-
-```
-ManualAi/
-├── app/                    # Next.js frontend pages
-│   ├── page.tsx           # Chat interface
-│   └── upload/page.tsx    # Manual management
-├── components/             # React components
-│   ├── ChatInterface.tsx  # Main chat UI
-│   └── MessageBubble.tsx  # Chat messages
-├── hf-space/              # Backend (deployed on HuggingFace)
-│   ├── main.py           # FastAPI app
-│   ├── rag_chain.py      # Groq + LangChain RAG
-│   ├── vector_store.py   # ChromaDB integration
-│   └── document_loader.py # PDF processing
-└── api/                   # Local development backend
-```
-
----
-
 ## 🎯 Usage
 
 1. **Upload** - Drop your car manual PDF, add make/model/year
