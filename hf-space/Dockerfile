@@ -1,5 +1,6 @@
 ﻿FROM python:3.10-slim
 
+# Force rebuild: Mistral 7B fix deployed 2025-10-07
 WORKDIR /app
 
 # Install system dependencies for document processing and OCR
