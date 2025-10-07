@@ -52,8 +52,8 @@ class ConversationMemory:
         self.history.clear()
 
 
-def _call_llm(prompt: str) -> str:
-    """Call HuggingFace Inference API for text generation"""
+def _call_llm_simple(prompt: str) -> str:
+    """Call HuggingFace Inference API for simple text generation (fallback)"""
     if not USE_LLM:
         return ""
     
@@ -312,7 +312,7 @@ Manual Information:
 
 Provide a concise, direct answer based ONLY on the information above. Do not add information not in the manual."""
 
-            llm_answer = _call_llm(prompt)
+            llm_answer = _call_llm_simple(prompt)
             if llm_answer and len(llm_answer) > 50:
                 answer = llm_answer
         
