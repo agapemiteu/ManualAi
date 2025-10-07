@@ -1,6 +1,7 @@
-# Build: 2025-10-06-19:00 - Added LLM support with HuggingFace Inference API
+# Build: 2025-10-07 - Groq API for fast, free, intelligent responses!
 fastapi
 uvicorn
+groq
 langchain-core==0.3.72
 langchain-openai==0.3.28
 langchain-community==0.3.27

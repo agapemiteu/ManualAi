@@ -4,16 +4,16 @@ import os
 
 FALLBACK_MESSAGE = "I don't have that information in this manual. Could you rephrase your question or ask about something else?"
 
-# LLM Configuration - Using Mistral 7B (works with free HF Inference API!)
+# LLM Configuration - Using Groq (FREE, FAST, WORKS!)
 USE_LLM = os.getenv("MANUAL_USE_LLM", "true").lower() == "true"
-LLM_API_URL = os.getenv("MANUAL_LLM_API_URL", "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2")
-LLM_API_KEY = os.getenv("HUGGINGFACE_TOKEN", os.getenv("HF_TOKEN", ""))
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+USE_GROQ = bool(GROQ_API_KEY)  # Use Groq if key is available
 
 # Debug: Print configuration at startup
 print(f"[STARTUP] LLM Configuration:")
 print(f"[STARTUP] USE_LLM = {USE_LLM}")
-print(f"[STARTUP] LLM_API_URL = {LLM_API_URL}")
-print(f"[STARTUP] HF Token present = {bool(LLM_API_KEY)} (length: {len(LLM_API_KEY) if LLM_API_KEY else 0})")
+print(f"[STARTUP] USE_GROQ = {USE_GROQ}")
+print(f"[STARTUP] Groq API Key present = {bool(GROQ_API_KEY)} (length: {len(GROQ_API_KEY) if GROQ_API_KEY else 0})")
 
 # Common stop words to filter out for better keyword extraction
 STOP_WORDS = {
@@ -439,16 +439,17 @@ def _deduplicate_docs(docs: List[Any]) -> List[Any]:
 
 
 def _call_llm(question: str, context: str) -> Optional[str]:
-    """Call HuggingFace Inference API with context-aware, intelligent synthesis"""
-    if not USE_LLM or not LLM_API_KEY:
+    """Call Groq API with context-aware, intelligent synthesis"""
+    if not USE_LLM or not USE_GROQ:
         return None
     
     try:
-        import requests
+        from groq import Groq
         
-        # MUCH BETTER PROMPT: Understand user intent and synthesize information
-        # Using Mistral format: [INST] instruction [/INST]
-        full_prompt = f"""[INST] You are an intelligent automotive assistant who helps users understand and use their car manual effectively.
+        client = Groq(api_key=GROQ_API_KEY)
+        
+        # Intelligent prompt for context-aware synthesis
+        system_prompt = """You are an intelligent automotive assistant who helps users understand and use their car manual effectively.
 
 YOUR APPROACH:
 1. Understand the User's Intent: What are they really trying to do?
@@ -462,57 +463,43 @@ EXAMPLES:
 ❌ BAD: "The manual says to check tire pressure monthly."
 ✅ GOOD: "Check your tire pressure monthly because properly inflated tires improve fuel efficiency, provide better handling, and last longer. The recommended pressure is usually on a sticker inside the driver's door. Check when tires are cold for accurate readings."
 
-RELEVANT MANUAL INFORMATION:
+Provide complete, practical answers that synthesize manual information and directly address the user's need."""
+
+        user_prompt = f"""RELEVANT MANUAL INFORMATION:
 {context[:2500]}
 
 USER'S QUESTION: {question}
 
-Provide a complete, practical answer that synthesizes the manual information and directly addresses their need. Explain concepts clearly and include any relevant safety warnings. [/INST]
+Provide a helpful, contextual answer based on the manual information above."""
 
-"""
-
-        headers = {"Authorization": f"Bearer {LLM_API_KEY}"}
-        payload = {
-            "inputs": full_prompt,
-            "parameters": {
-                "max_new_tokens": 500,  # More space for comprehensive answers
-                "temperature": 0.6,      # Slightly more creative for better synthesis
-                "top_p": 0.92,
-                "do_sample": True,
-                "repetition_penalty": 1.15,  # Avoid repetition
-                "presence_penalty": 0.1      # Encourage diverse vocabulary
-            }
-        }
+        print(f"[DEBUG] Calling Groq API with Llama 3.1...")
         
-        response = requests.post(LLM_API_URL, headers=headers, json=payload, timeout=20)
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",  # Fast and intelligent!
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            max_tokens=500,
+            temperature=0.6,
+            top_p=0.92
+        )
         
-        print(f"[DEBUG] LLM API response status: {response.status_code}")
-        if response.status_code != 200:
-            print(f"[DEBUG] LLM API error: {response.text[:200]}")
+        generated_text = response.choices[0].message.content.strip()
         
-        if response.status_code == 200:
-            result = response.json()
-            print(f"[DEBUG] LLM response type: {type(result)}, length: {len(result) if isinstance(result, list) else 'N/A'}")
-            if isinstance(result, list) and len(result) > 0:
-                generated_text = result[0].get("generated_text", "").strip()
-                # Clean up the response
-                if generated_text:
-                    # Remove Mistral prompt artifacts
-                    if "[/INST]" in generated_text:
-                        generated_text = generated_text.split("[/INST]")[-1].strip()
-                    if "</s>" in generated_text:
-                        generated_text = generated_text.split("</s>")[0].strip()
-                    
-                    # Only return if it's a substantial, helpful answer
-                    if len(generated_text) > 30 and not generated_text.startswith("I don't"):
-                        print(f"[DEBUG] LLM returned {len(generated_text)} chars")
-                        return generated_text
-                    else:
-                        print(f"[DEBUG] LLM response too short or unhelpful: {len(generated_text)} chars")
+        print(f"[DEBUG] Groq API success! Response: {len(generated_text)} chars")
         
-        return None
+        # Only return if it's a substantial, helpful answer
+        if len(generated_text) > 30 and not generated_text.startswith("I don't"):
+            return generated_text
+        else:
+            print(f"[DEBUG] Response too short or unhelpful")
+            return None
+        
     except Exception as e:
-        print(f"LLM call failed: {e}")
+        print(f"[ERROR] Groq API call failed: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 
@@ -549,9 +536,9 @@ def make_rag_chain(retriever):
                 return SimpleResponse(FALLBACK_MESSAGE)
 
             # Try LLM-based answer with RICH CONTEXT for intelligent synthesis
-            print(f"[DEBUG] USE_LLM={USE_LLM}, has_key={bool(LLM_API_KEY)}, final_docs={len(final_docs)}")
-            if USE_LLM and LLM_API_KEY:
-                print(f"[DEBUG] Using intelligent LLM path with Mistral 7B")
+            print(f"[DEBUG] USE_LLM={USE_LLM}, USE_GROQ={USE_GROQ}, final_docs={len(final_docs)}")
+            if USE_LLM and USE_GROQ:
+                print(f"[DEBUG] Using Groq API with Llama 3.1 8B")
                 # Provide MORE context so LLM can understand and synthesize better
                 # Include full chunks, not truncated
                 context_chunks = []
