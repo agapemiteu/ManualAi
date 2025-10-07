@@ -4,9 +4,9 @@ import os
 
 FALLBACK_MESSAGE = "I don't have that information in this manual. Could you rephrase your question or ask about something else?"
 
-# LLM Configuration - Upgraded to Llama 3.1 8B for better intelligence!
+# LLM Configuration - Using Mistral 7B (works with free HF Inference API!)
 USE_LLM = os.getenv("MANUAL_USE_LLM", "true").lower() == "true"
-LLM_API_URL = os.getenv("MANUAL_LLM_API_URL", "https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3.1-8B-Instruct")
+LLM_API_URL = os.getenv("MANUAL_LLM_API_URL", "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2")
 LLM_API_KEY = os.getenv("HUGGINGFACE_TOKEN", os.getenv("HF_TOKEN", ""))
 
 # Debug: Print configuration at startup
@@ -447,41 +447,27 @@ def _call_llm(question: str, context: str) -> Optional[str]:
         import requests
         
         # MUCH BETTER PROMPT: Understand user intent and synthesize information
-        full_prompt = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
-
-You are an intelligent automotive assistant who helps users understand and use their car manual effectively.
+        # Using Mistral format: [INST] instruction [/INST]
+        full_prompt = f"""[INST] You are an intelligent automotive assistant who helps users understand and use their car manual effectively.
 
 YOUR APPROACH:
-1. **Understand the User's Intent**: What are they really trying to do? Fix something? Learn how to use a feature? Troubleshoot an issue?
-2. **Synthesize Information**: Don't just quote the manual - explain it in the context of what they're asking
-3. **Be Practical**: Give actionable steps, tips, and warnings
-4. **Explain WHY**: Help them understand the reasoning behind instructions
-5. **Anticipate Follow-ups**: Address related concerns they might have
-6. **Use Simple Language**: Translate technical jargon into plain English
-7. **Be Contextual**: Consider what a real person asking this question would need to know
+1. Understand the User's Intent: What are they really trying to do?
+2. Synthesize Information: Don't just quote - explain in context
+3. Be Practical: Give actionable steps, tips, and warnings
+4. Explain WHY: Help them understand the reasoning
+5. Use Simple Language: Translate technical jargon
+6. Be Contextual: Consider real-world situations
 
-EXAMPLES OF GOOD ANSWERS:
+EXAMPLES:
 ❌ BAD: "The manual says to check tire pressure monthly."
-✅ GOOD: "You should check your tire pressure at least once a month. This is important because properly inflated tires improve fuel efficiency, provide better handling, and last longer. The recommended pressure is usually on a sticker inside the driver's door. Check when tires are cold (haven't been driven for a few hours) for accurate readings."
-
-❌ BAD: "Section 3.2 covers this."
-✅ GOOD: "To change your tire, here's what you need to do: First, make sure you're on flat ground and the car is in park. Get your spare tire, jack, and lug wrench from the trunk. Loosen the lug nuts before jacking up the car, then..."
-
-<|eot_id|><|start_header_id|>user<|end_header_id|>
+✅ GOOD: "Check your tire pressure monthly because properly inflated tires improve fuel efficiency, provide better handling, and last longer. The recommended pressure is usually on a sticker inside the driver's door. Check when tires are cold for accurate readings."
 
 RELEVANT MANUAL INFORMATION:
 {context[:2500]}
 
 USER'S QUESTION: {question}
 
-INSTRUCTIONS:
-1. First, understand what the user is REALLY asking (their intent and context)
-2. Synthesize the manual information to directly address their need
-3. Provide a complete, practical answer that makes sense in their situation
-4. Explain concepts clearly without just quoting the manual
-5. Include any relevant safety warnings or important tips
-
-Provide your answer now:<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+Provide a complete, practical answer that synthesizes the manual information and directly addresses their need. Explain concepts clearly and include any relevant safety warnings. [/INST]
 
 """
 
@@ -511,15 +497,18 @@ Provide your answer now:<|eot_id|><|start_header_id|>assistant<|end_header_id|>
                 generated_text = result[0].get("generated_text", "").strip()
                 # Clean up the response
                 if generated_text:
-                    # Remove prompt artifacts
-                    if "<|start_header_id|>assistant<|end_header_id|>" in generated_text:
-                        generated_text = generated_text.split("<|start_header_id|>assistant<|end_header_id|>")[-1].strip()
-                    generated_text = generated_text.replace("<|eot_id|>", "").strip()
-                    generated_text = generated_text.replace("<|end_of_text|>", "").strip()
+                    # Remove Mistral prompt artifacts
+                    if "[/INST]" in generated_text:
+                        generated_text = generated_text.split("[/INST]")[-1].strip()
+                    if "</s>" in generated_text:
+                        generated_text = generated_text.split("</s>")[0].strip()
                     
                     # Only return if it's a substantial, helpful answer
                     if len(generated_text) > 30 and not generated_text.startswith("I don't"):
+                        print(f"[DEBUG] LLM returned {len(generated_text)} chars")
                         return generated_text
+                    else:
+                        print(f"[DEBUG] LLM response too short or unhelpful: {len(generated_text)} chars")
         
         return None
     except Exception as e:
