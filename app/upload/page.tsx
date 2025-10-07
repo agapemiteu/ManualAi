@@ -111,6 +111,16 @@ async function analyzePdf(file: File): Promise<PdfAnalysisResult | null> {
   }
 }
 
+interface ManualInfo {
+  manual_id: string;
+  status: "processing" | "ready" | "failed";
+  filename: string;
+  brand: string | null;
+  model: string | null;
+  year: string | null;
+  error: string | null;
+}
+
 const UploadPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [manualId, setManualId] = useState("");
@@ -127,17 +137,35 @@ const UploadPage: React.FC = () => {
   const [analysisState, setAnalysisState] = useState<AnalysisState>("idle");
   const [analysisResult, setAnalysisResult] = useState<PdfAnalysisResult | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [uploadedManuals, setUploadedManuals] = useState<ManualInfo[]>([]);
+  const [loadingManuals, setLoadingManuals] = useState(true);
+  const [deletingManualId, setDeletingManualId] = useState<string | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const uploadRequestRef = useRef<XMLHttpRequest | null>(null);
   const uploadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const fetchUploadedManuals = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/manuals`);
+      if (response.ok) {
+        const data = await response.json();
+        setUploadedManuals(data.manuals || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch manuals:", error);
+    } finally {
+      setLoadingManuals(false);
+    }
+  }, []);
+
   useEffect(() => {
+    fetchUploadedManuals();
     return () => {
       if (pollingRef.current) {
         clearInterval(pollingRef.current);
       }
     };
-  }, []);
+  }, [fetchUploadedManuals]);
 
   const handleFileSelection = useCallback(async (selectedFile: File | null) => {
     if (!selectedFile) {
@@ -284,6 +312,8 @@ const UploadPage: React.FC = () => {
       setManualStatus(null);
       setUploadState("idle");
       setProgress(0);
+      // Refresh the list
+      await fetchUploadedManuals();
     } catch (error) {
       console.error(error);
       const detail = error instanceof Error ? error.message : "";
@@ -291,7 +321,27 @@ const UploadPage: React.FC = () => {
     } finally {
       setIsDeleting(false);
     }
-  }, [manualStatus]);
+  }, [manualStatus, fetchUploadedManuals]);
+
+  const deleteUploadedManual = useCallback(async (manual_id: string) => {
+    if (!confirm(`Are you sure you want to delete this manual? This action cannot be undone.`)) {
+      return;
+    }
+    setDeletingManualId(manual_id);
+    try {
+      const response = await fetch(`${API_URL}/api/manuals/${encodeURIComponent(manual_id)}`, { method: "DELETE" });
+      if (!response.ok) {
+        throw new Error(`Delete request failed with ${response.status}`);
+      }
+      // Refresh the list
+      await fetchUploadedManuals();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete manual. Please try again.");
+    } finally {
+      setDeletingManualId(null);
+    }
+  }, [fetchUploadedManuals]);
 
   const cancelUpload = useCallback(() => {
     const activeRequest = uploadRequestRef.current;
@@ -491,6 +541,72 @@ const UploadPage: React.FC = () => {
             </p>
           </div>
         </div>
+
+        {/* Uploaded Manuals List */}
+        {!loadingManuals && uploadedManuals.length > 0 && (
+          <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-950/60 p-6 shadow-xl shadow-slate-900/40">
+            <div className="mb-4 flex items-center gap-2">
+              <FileText className="h-5 w-5 text-sky-400" />
+              <h2 className="text-lg font-semibold text-white">My Uploaded Manuals</h2>
+              <span className="ml-auto text-xs text-slate-400">{uploadedManuals.length} manual{uploadedManuals.length !== 1 ? 's' : ''}</span>
+            </div>
+            <div className="space-y-3">
+              {uploadedManuals.map((manual) => (
+                <div
+                  key={manual.manual_id}
+                  className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/60 p-4 transition hover:border-slate-700"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-white truncate">{manual.filename}</p>
+                      {manual.status === "ready" && (
+                        <CheckCircle className="h-4 w-4 flex-shrink-0 text-emerald-400" />
+                      )}
+                      {manual.status === "processing" && (
+                        <Loader2 className="h-4 w-4 flex-shrink-0 animate-spin text-sky-400" />
+                      )}
+                      {manual.status === "failed" && (
+                        <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-400" />
+                      )}
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-400">
+                      {manual.brand && <span>🚗 {manual.brand}</span>}
+                      {manual.model && <span>{manual.model}</span>}
+                      {manual.year && <span>{manual.year}</span>}
+                      <span className={clsx(
+                        "font-medium",
+                        manual.status === "ready" && "text-emerald-400",
+                        manual.status === "processing" && "text-sky-400",
+                        manual.status === "failed" && "text-red-400"
+                      )}>
+                        {manual.status}
+                      </span>
+                    </div>
+                    {manual.error && manual.status === "failed" && (
+                      <p className="mt-1 text-xs text-red-400">{manual.error}</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => deleteUploadedManual(manual.manual_id)}
+                    disabled={deletingManualId === manual.manual_id}
+                    className={clsx(
+                      "ml-4 flex-shrink-0 rounded-lg border border-red-500/50 bg-red-500/10 p-2 text-red-200 transition hover:bg-red-500/20",
+                      deletingManualId === manual.manual_id && "cursor-not-allowed opacity-50"
+                    )}
+                    title="Delete manual"
+                  >
+                    {deletingManualId === manual.manual_id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <form onSubmit={onSubmit} className="space-y-6">
           <div
