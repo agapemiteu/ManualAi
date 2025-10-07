@@ -549,7 +549,9 @@ def make_rag_chain(retriever):
                 return SimpleResponse(FALLBACK_MESSAGE)
 
             # Try LLM-based answer with RICH CONTEXT for intelligent synthesis
+            print(f"[DEBUG] USE_LLM={USE_LLM}, has_key={bool(LLM_API_KEY)}")
             if USE_LLM and LLM_API_KEY:
+                print("[DEBUG] Using intelligent LLM path")
                 # Provide MORE context so LLM can understand and synthesize better
                 # Include full chunks, not truncated
                 context_chunks = []
