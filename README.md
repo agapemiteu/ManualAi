@@ -17,93 +17,80 @@
 
 ## ✨ Features
 
-- 🤖 **AI-Powered RAG** - Natural conversations with your car manual using advanced retrieval-augmented generation
-- 📚 **Multi-Manual Support** - Upload and manage multiple manuals simultaneously
-- 🔍 **Smart Search** - Intelligent query expansion with semantic understanding
-- 🎯 **Context-Aware Responses** - Detects urgency, safety concerns, and question types
-- ⚠️ **Safety First** - Provides warnings and professional guidance when needed
-- 🌐 **Brand Agnostic** - Neutralizes brand-specific references for universal answers
-- 📱 **Responsive UI** - Mobile-friendly interface built with Tailwind CSS
+- 🤖 **AI-Powered RAG** - Natural conversations powered by Llama 3.1 8B via Groq API
+- 📚 **Multi-Manual Support** - Upload, view, and delete multiple manuals
+- 🔍 **Manual-Aware Responses** - AI cites specific page numbers from your manual
+- 💬 **Human-Friendly Tone** - Conversational, helpful responses (not robotic)
+- ⚡ **Lightning Fast** - Groq's inference speed delivers instant answers
+- 📱 **Responsive UI** - Clean, mobile-friendly interface built with Next.js & Tailwind CSS
+- 🗑️ **Manual Management** - Easy upload and deletion of manuals
 
 ---
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Try It Live
 
-- **Node.js** 18+ and npm/yarn
-- **Python** 3.10+
-- **pip** package manager
+👉 **[https://manual-ai-psi.vercel.app](https://manual-ai-psi.vercel.app)** - No installation needed!
 
-### 1. Clone the Repository
+### Run Locally
+
+#### Prerequisites
+- **Node.js** 18+
+- **Groq API Key** - Get free at [console.groq.com](https://console.groq.com)
+
+#### 1. Clone & Install
 
 ```bash
 git clone https://github.com/agapemiteu/ManualAi.git
 cd ManualAi
-```
-
-### 2. Install Frontend Dependencies
-
-```bash
 npm install
 ```
 
-### 3. Install Backend Dependencies
+#### 2. Configure Environment
 
-```bash
-cd api
-pip install -r requirements.txt
-```
-
-### 4. Set Up Environment Variables
-
-Create `.env.local` in the root directory:
+Create `.env.local`:
 
 ```env
-NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+NEXT_PUBLIC_API_URL=https://agapemiteu-manualai.hf.space
 ```
 
-### 5. Start the Backend Server
+Or run your own backend on HuggingFace Spaces (see `hf-space/` directory)
 
-```bash
-cd api
-uvicorn main:app --reload
-```
-
-Backend will run on `http://localhost:8000`
-
-### 6. Start the Frontend
+#### 3. Start Development Server
 
 ```bash
 npm run dev
 ```
 
-Frontend will run on `http://localhost:3000`
+Open `http://localhost:3000`
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-Next.js Frontend (TypeScript) → FastAPI Backend (Python) → ChromaDB Vector Store
+Next.js Frontend → FastAPI Backend → ChromaDB → Groq API (Llama 3.1 8B)
+     (Vercel)      (HuggingFace Spaces)   (Ephemeral)    (Free Tier)
 ```
 
 **Tech Stack:**
 - **Frontend**: Next.js 14, TypeScript, Tailwind CSS
-- **Backend**: FastAPI, LangChain RAG
-- **Embeddings**: Sentence-Transformers (all-MiniLM-L6-v2)
-- **Vector DB**: ChromaDB
-- **Processing**: Unstructured.io
+- **Backend**: FastAPI, LangChain
+- **LLM**: Llama 3.1 8B Instant via Groq API
+- **Embeddings**: sentence-transformers/all-MiniLM-L6-v2
+- **Vector Store**: ChromaDB (ephemeral, session-based)
+- **Deployment**: Vercel (frontend) + HuggingFace Spaces (backend)
 
 ---
 
-## 🧠 Intelligence Features
+## 🧠 How It Works
 
-- **Query Expansion** - Automatically expands queries with synonyms and related terms
-- **Relevance Scoring** - Ranks answers using Jaccard similarity (15% threshold)
-- **Question Detection** - Identifies procedural vs. warning questions
-- **Safety Context** - Detects urgent situations and adds warnings
-- **Brand Neutralization** - Converts brand-specific terms to generic equivalents
+1. **Upload Your Manual** - PDF is processed and split into searchable chunks
+2. **Embeddings Created** - Text converted to vectors using sentence-transformers
+3. **Stored in ChromaDB** - Vector database enables semantic search
+4. **Ask Questions** - Your query finds relevant manual sections
+5. **AI Answers** - Groq's Llama 3.1 8B generates human-friendly responses with page references
 
 ---
 
@@ -111,43 +98,64 @@ Next.js Frontend (TypeScript) → FastAPI Backend (Python) → ChromaDB Vector S
 
 ```
 ManualAi/
-├── app/              # Next.js frontend
-├── components/       # React components
-├── api/              # FastAPI backend
-│   ├── main.py
-│   ├── rag_chain.py
-│   └── vector_store.py
-└── data/             # Uploaded manuals
+├── app/                    # Next.js frontend pages
+│   ├── page.tsx           # Chat interface
+│   └── upload/page.tsx    # Manual management
+├── components/             # React components
+│   ├── ChatInterface.tsx  # Main chat UI
+│   └── MessageBubble.tsx  # Chat messages
+├── hf-space/              # Backend (deployed on HuggingFace)
+│   ├── main.py           # FastAPI app
+│   ├── rag_chain.py      # Groq + LangChain RAG
+│   ├── vector_store.py   # ChromaDB integration
+│   └── document_loader.py # PDF processing
+└── api/                   # Local development backend
 ```
 
 ---
 
 ## 🎯 Usage
 
-1. **Upload** - Select your car manual (PDF/HTML/Image), add details, wait ~30s
-2. **Ask** - Type questions naturally ("What does the brake light mean?")
-3. **Get Answers** - Receive intelligent, context-aware responses
+1. **Upload** - Drop your car manual PDF, add make/model/year
+2. **Wait ~30s** - Manual is processed and indexed
+3. **Ask Anything** - "What does the check engine light mean?"
+4. **Get Smart Answers** - AI responds with specific page references from YOUR manual
+5. **Manage Manuals** - View uploaded manuals, delete when done
 
 ---
 
 ## 🌐 Deployment
 
-**Frontend**: Deployed on [Vercel](https://vercel.com)  
-**Backend**: Deployed on [Render](https://render.com)
+**Live Site**: [manual-ai-psi.vercel.app](https://manual-ai-psi.vercel.app)
+
+- **Frontend**: Vercel (auto-deploys from `main` branch)
+- **Backend**: HuggingFace Spaces (Docker container)
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/agapemiteu/ManualAi)
 
-For detailed instructions, see [RENDER-DEPLOYMENT.md](RENDER-DEPLOYMENT.md)
+### Deploy Your Own Backend
+
+1. Create account on [HuggingFace Spaces](https://huggingface.co/spaces)
+2. Create new Space (Docker SDK)
+3. Copy files from `hf-space/` directory
+4. Add `GROQ_API_KEY` secret in Space settings
+5. Update `NEXT_PUBLIC_API_URL` in your Vercel deployment
 
 ---
 
 ## 🔧 Configuration
 
-Set `NEXT_PUBLIC_API_URL` in `.env.local` to your backend URL:
-
+**Frontend Environment** (`.env.local`):
 ```env
-NEXT_PUBLIC_API_URL=https://manualai-backend.onrender.com
+NEXT_PUBLIC_API_URL=https://agapemiteu-manualai.hf.space
 ```
+
+**Backend Environment** (HuggingFace Spaces secrets):
+```env
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+Get your free Groq API key at [console.groq.com](https://console.groq.com)
 
 ---
 
@@ -171,11 +179,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
+- [Groq](https://groq.com/) for lightning-fast LLM inference
 - [LangChain](https://github.com/langchain-ai/langchain) for RAG framework
+- [HuggingFace](https://huggingface.co/) for free backend hosting
 - [Sentence-Transformers](https://www.sbert.net/) for embeddings
 - [ChromaDB](https://www.trychroma.com/) for vector storage
-- [Unstructured.io](https://unstructured.io/) for document parsing
-- [Vercel](https://vercel.com/) for hosting
+- [Vercel](https://vercel.com/) for frontend hosting
 
 ---
 
