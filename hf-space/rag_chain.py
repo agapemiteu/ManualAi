@@ -373,11 +373,11 @@ def _handle_chitchat(question: str) -> Optional[str]:
     """Handle greetings and chitchat naturally"""
     lower = question.lower().strip()
     if lower in ["hi", "hello", "hey"]:
-        return "Hi! I'm here to help you understand your car manual. What would you like to know?"
+        return "Hi there! 👋 I'm here to help you understand your car manual. Whether you need to know how something works, find maintenance schedules, or troubleshoot an issue - just ask! What would you like to know about your vehicle?"
     if "thank" in lower:
-        return "You're welcome! Let me know if you need anything else."
+        return "You're very welcome! Happy to help you get the most out of your manual. If anything else comes up, I'm here for you! 😊"
     if lower in ["bye", "goodbye"]:
-        return "Take care! Feel free to come back if you have more questions."
+        return "Take care and drive safely! Feel free to come back anytime you have questions about your car. 🚗"
     return None
 
 
@@ -449,28 +449,48 @@ def _call_llm(question: str, context: str) -> Optional[str]:
         client = Groq(api_key=GROQ_API_KEY)
         
         # Intelligent prompt for context-aware synthesis
-        system_prompt = """You are an intelligent automotive assistant who helps users understand and use their car manual effectively.
+        system_prompt = """You are a friendly and knowledgeable automotive assistant helping real people understand their car manual.
+
+YOUR PERSONALITY:
+- Warm and conversational (like a helpful friend who knows cars)
+- Patient and understanding
+- Clear without being condescending
+- Encouraging and supportive
 
 YOUR APPROACH:
-1. Understand the User's Intent: What are they really trying to do?
-2. Synthesize Information: Don't just quote - explain in context
-3. Be Practical: Give actionable steps, tips, and warnings
-4. Explain WHY: Help them understand the reasoning
-5. Use Simple Language: Translate technical jargon
-6. Be Contextual: Consider real-world situations
+1. Ground Every Answer in the Manual: Always reference what page, section, or part of the manual you're drawing from
+2. Speak to a Human: Use "you" and "your car" - remember there's a person trying to understand their specific vehicle
+3. Synthesize Don't Quote: Explain the information in context, don't just repeat it
+4. Be Practical: Give step-by-step guidance they can actually follow
+5. Explain the Why: Help them understand the reasoning behind recommendations
+6. Translate Jargon: Turn technical terms into everyday language
+7. Add Context: Consider real-world situations and common concerns
+8. Give Specific References: Mention page numbers, sections, or chapter names when available
 
 EXAMPLES:
 ❌ BAD: "The manual says to check tire pressure monthly."
-✅ GOOD: "Check your tire pressure monthly because properly inflated tires improve fuel efficiency, provide better handling, and last longer. The recommended pressure is usually on a sticker inside the driver's door. Check when tires are cold for accurate readings."
+✅ GOOD: "According to your manual's maintenance section, you should check your tire pressure monthly. Here's why this matters: properly inflated tires improve your fuel efficiency by up to 3%, give you better handling and braking, and help your tires last longer. Your manual specifies the exact pressure (usually found on a sticker inside your driver's door). Pro tip: always check when the tires are cold - that means before you've driven or at least 3 hours after driving."
 
-Provide complete, practical answers that synthesize manual information and directly address the user's need."""
+❌ BAD: "Reset the system using the button."
+✅ GOOD: "Your manual (page X) describes how to reset this system. Here's what you need to do: [clear steps]. This reset is important because [reason]. If it doesn't work the first time, that's normal - sometimes you need to hold the button a bit longer."
 
-        user_prompt = f"""RELEVANT MANUAL INFORMATION:
-{context[:2500]}
+ALWAYS:
+- Reference the specific manual content provided
+- Speak directly to the person asking
+- Make it feel like you're both looking at their manual together
+- Be encouraging and helpful, never robotic
 
-USER'S QUESTION: {question}
+Provide complete, practical answers that help real people use and understand their specific car manual."""
 
-Provide a helpful, contextual answer based on the manual information above."""
+        # Extract metadata from context for better reference
+        context_with_refs = context[:2500]
+        
+        user_prompt = f"""MANUAL CONTENT PROVIDED:
+{context_with_refs}
+
+THE PERSON'S QUESTION: {question}
+
+Help this person understand their car manual. Base your answer on the manual content above, reference specific sections or pages when you can see them in the metadata, and explain things in a warm, practical way. Remember: you're helping a real person who wants to understand and safely use their vehicle."""
 
         print(f"[DEBUG] Calling Groq API with Llama 3.1...")
         
@@ -540,20 +560,35 @@ def make_rag_chain(retriever):
             if USE_LLM and USE_GROQ:
                 print(f"[DEBUG] Using Groq API with Llama 3.1 8B")
                 # Provide MORE context so LLM can understand and synthesize better
-                # Include full chunks, not truncated
+                # Include full chunks with metadata references
                 context_chunks = []
                 total_length = 0
-                for doc in final_docs[:5]:  # Top 5 most relevant chunks
+                for i, doc in enumerate(final_docs[:5], 1):  # Top 5 most relevant chunks
                     content = getattr(doc, "page_content", "")
+                    metadata = getattr(doc, "metadata", {}) or {}
+                    
+                    # Build reference information from metadata
+                    ref_info = []
+                    if "page_number" in metadata:
+                        ref_info.append(f"Page {metadata['page_number']}")
+                    if "section" in metadata:
+                        ref_info.append(f"Section: {metadata['section']}")
+                    if "procedure" in metadata:
+                        ref_info.append(f"Procedure: {metadata['procedure']}")
+                    
+                    # Create context chunk with references
+                    ref_prefix = f"[Source {i}" + (f" - {', '.join(ref_info)}]" if ref_info else "]")
+                    chunk_with_ref = f"{ref_prefix}\n{content}"
+                    
                     # Include full content up to reasonable limit
-                    if total_length + len(content) < 2500:
-                        context_chunks.append(content)
-                        total_length += len(content)
+                    if total_length + len(chunk_with_ref) < 2500:
+                        context_chunks.append(chunk_with_ref)
+                        total_length += len(chunk_with_ref)
                     else:
                         # Add partial if we have room
                         remaining = 2500 - total_length
-                        if remaining > 100:
-                            context_chunks.append(content[:remaining])
+                        if remaining > 200:  # Only add if substantial
+                            context_chunks.append(chunk_with_ref[:remaining])
                         break
                 
                 context = "\n\n---\n\n".join(context_chunks)
