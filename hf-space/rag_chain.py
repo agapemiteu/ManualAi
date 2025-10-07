@@ -9,6 +9,12 @@ USE_LLM = os.getenv("MANUAL_USE_LLM", "true").lower() == "true"
 LLM_API_URL = os.getenv("MANUAL_LLM_API_URL", "https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3.1-8B-Instruct")
 LLM_API_KEY = os.getenv("HUGGINGFACE_TOKEN", os.getenv("HF_TOKEN", ""))
 
+# Debug: Print configuration at startup
+print(f"[STARTUP] LLM Configuration:")
+print(f"[STARTUP] USE_LLM = {USE_LLM}")
+print(f"[STARTUP] LLM_API_URL = {LLM_API_URL}")
+print(f"[STARTUP] HF Token present = {bool(LLM_API_KEY)} (length: {len(LLM_API_KEY) if LLM_API_KEY else 0})")
+
 # Common stop words to filter out for better keyword extraction
 STOP_WORDS = {
     "the", "is", "at", "which", "on", "a", "an", "as", "are", "was", "were",
