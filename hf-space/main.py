@@ -657,8 +657,14 @@ async def chat(req: QueryRequest) -> QueryResponse:
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=f"Manual '{exc.args[0]}' not found.") from exc
 
-    resp = chain.invoke(req.question)
-    return QueryResponse(answer=resp.content)
+    try:
+        resp = chain.invoke(req.question)
+        return QueryResponse(answer=resp.content)
+    except Exception as e:
+        print(f"[ERROR] Chat endpoint error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}") from e
 
 
 @app.get("/api/manuals", response_model=ManualListResponse)
