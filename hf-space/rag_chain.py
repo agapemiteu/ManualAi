@@ -500,8 +500,13 @@ Provide your answer now:<|eot_id|><|start_header_id|>assistant<|end_header_id|>
         
         response = requests.post(LLM_API_URL, headers=headers, json=payload, timeout=20)
         
+        print(f"[DEBUG] LLM API response status: {response.status_code}")
+        if response.status_code != 200:
+            print(f"[DEBUG] LLM API error: {response.text[:200]}")
+        
         if response.status_code == 200:
             result = response.json()
+            print(f"[DEBUG] LLM response type: {type(result)}, length: {len(result) if isinstance(result, list) else 'N/A'}")
             if isinstance(result, list) and len(result) > 0:
                 generated_text = result[0].get("generated_text", "").strip()
                 # Clean up the response
