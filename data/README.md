@@ -11,7 +11,10 @@ This directory contains uploaded car manuals, evaluation datasets, and processed
   - Used for measuring retrieval accuracy and comparing RAG strategies
 
 ### Car Manuals
-- **`2023-Toyota-4runner-Manual.pdf`** - Source manual for evaluation (place your PDF here)
+- **`2023-Toyota-4runner-Manual.pdf`** - Complete 2023 Toyota 4Runner Owner's Manual (608 pages, 12.4MB)
+  - Pre-loaded in HuggingFace deployment for immediate testing
+  - Available for download and local testing
+  - Source for all evaluation experiments
 
 ### Runtime Storage (created at runtime)
 - `uploads/` - Original uploaded files from users
@@ -47,6 +50,23 @@ cd hf-space
 python evaluate.py
 ```
 
+## Downloading the Manual
+
+The Toyota 4Runner manual is included in this repository. To download it:
+
+```bash
+# Clone the repository
+git clone https://github.com/agapemiteu/ManualAi.git
+cd ManualAi
+
+# The manual is located at:
+# data/2023-Toyota-4runner-Manual.pdf
+```
+
+Or download directly from GitHub:
+- Navigate to `data/2023-Toyota-4runner-Manual.pdf`
+- Click "Download" button
+
 ## Note
 
-Sample PDF files are not included in the repository to keep it lightweight. Users should upload their own car manuals through the application interface.
+This manual is pre-loaded in the HuggingFace deployment, so users can immediately test the Q&A system without uploading their own files.
