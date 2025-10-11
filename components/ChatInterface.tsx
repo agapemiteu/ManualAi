@@ -200,9 +200,9 @@ export default function ChatInterface() {
       <section className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6 shadow-xl shadow-slate-900/40">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-white">Chat with your Manuals</h1>
+            <h1 className="text-2xl font-semibold text-white">Chat with Toyota 4Runner Manual</h1>
             <p className="text-sm text-slate-400">
-              Ask questions and get concise answers sourced directly from your uploaded manuals.
+              Ask questions about the 2023 Toyota 4Runner. Pre-loaded and ready to use!
             </p>
           </div>
           <button
