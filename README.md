@@ -2,7 +2,7 @@
 
 > A production-ready RAG (Retrieval-Augmented Generation) system that achieves **64% accuracy within ±2 pages** on a 608-page Toyota 4Runner manual — an **800% improvement** over keyword search baseline.
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Coming_Soon-yellow)]()
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Try_It_Now!-brightgreen)](https://huggingface.co/spaces/Agapemiteu/ManualAi)
 [![Accuracy](https://img.shields.io/badge/Accuracy-64%25_(±2_pages)-success)]()
 [![Python](https://img.shields.io/badge/Python-3.13-blue)]()
 [![License](https://img.shields.io/badge/License-MIT-green)]()
