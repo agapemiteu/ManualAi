@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Use HuggingFace Space as backend (production)
+// Or local backend for development
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://agapemiteu-manualai.hf.space';
+const USE_HF_GRADIO = !process.env.NEXT_PUBLIC_API_URL; // Use Gradio API if no custom backend
+
 export async function POST(req: NextRequest) {
   try {
-    const { message } = await req.json();
+    const { message, manual_id } = await req.json();
     
     if (!message) {
       return NextResponse.json(
@@ -11,48 +16,68 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Call HuggingFace Space API
-    const HF_SPACE_URL = 'https://agapemiteu-manualai.hf.space/api/predict';
-    
-    const response = await fetch(HF_SPACE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        data: [message]
-      }),
-    });
+    if (USE_HF_GRADIO) {
+      // Call HuggingFace Gradio API
+      const response = await fetch(`${BACKEND_URL}/api/predict`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data: [message] // Gradio expects data array
+        }),
+      });
 
-    if (!response.ok) {
-      throw new Error(`HuggingFace API error: ${response.statusText}`);
+      if (!response.ok) {
+        throw new Error(`HuggingFace API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Extract from Gradio response: { data: [answer, chunks, confidence, latency] }
+      const [answer, chunks, confidence, latency] = data.data;
+
+      return NextResponse.json({
+        response: answer,
+        page_number: null, // Gradio returns formatted text, not structured data
+        retrieved_chunks: chunks ? JSON.parse(chunks) : [],
+        confidence: parseFloat(confidence) || 0.0,
+        latency: parseFloat(latency) || 0.0,
+        timestamp: new Date().toISOString(),
+      });
+
+    } else {
+      // Call FastAPI backend (local development or custom deployment)
+      const response = await fetch(`${BACKEND_URL}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          manual_id: manual_id || null,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Backend API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return NextResponse.json(data);
     }
-
-    const data = await response.json();
-    
-    // Extract the answer from HF response
-    // HF Gradio API returns: { data: [answer, chunks, confidence, latency] }
-    const [answer, chunks, confidence, latency] = data.data;
-
-    return NextResponse.json({
-      answer,
-      chunks,
-      confidence,
-      latency,
-      timestamp: new Date().toISOString(),
-    });
 
   } catch (error) {
     console.error('Chat API error:', error);
     return NextResponse.json(
       { 
         error: 'Failed to get response',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
+        response: 'Sorry, I encountered an error processing your request. Please try again.'
       },
       { status: 500 }
     );
   }
 }
 
-// Optional: Add rate limiting in production
-export const runtime = 'edge'; // Use Edge runtime for better performance
+export const runtime = 'edge';
