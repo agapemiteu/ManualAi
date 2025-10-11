@@ -11,7 +11,7 @@ langchain-text-splitters>=0.0.1
 PyMuPDF>=1.23.0
 
 # Web Interface
-gradio>=4.0.0
+gradio>=5.0.0
 
 # Utilities
 numpy>=1.24.0
