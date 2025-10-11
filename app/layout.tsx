@@ -32,7 +32,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <MessageCircle className="h-4 w-4" />
                   Chat
                 </Link>
-                {/* Upload disabled - Manual is pre-loaded in deployment
                 <Link
                   href="/upload"
                   className={clsx(navLinkClass, "bg-sky-600 text-white hover:bg-sky-500")}
@@ -40,13 +39,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <Upload className="h-4 w-4" />
                   Upload Manual
                 </Link>
-                */}
               </nav>
             </div>
           </header>
           <main className="flex-1">{children}</main>
           <footer className="border-t border-slate-800 bg-slate-950/70 py-4 text-center text-xs text-slate-500">
-            <p>Powered by AI • <span className="text-sky-400">ManualAi</span> © 2025 • Max upload: 50MB</p>
+            <p>Powered by AI • <span className="text-sky-400">ManualAi</span> © 2025 • Max upload: 5MB (Free Tier)</p>
           </footer>
         </div>
       </body>

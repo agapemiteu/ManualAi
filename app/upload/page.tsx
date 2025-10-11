@@ -15,8 +15,9 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
-const MAX_FILE_SIZE = 50 * 1024 * 1024;
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://agapemiteu-manualai.hf.space";
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit for free tier
+const RECOMMENDED_FILE_SIZE = 2 * 1024 * 1024; // 2MB recommended
 const ACCEPTED_TYPES = ["application/pdf", "text/html", "text/plain"];
 type PdfAnalysisResult = {
   isImageHeavy: boolean;
@@ -183,8 +184,13 @@ const UploadPage: React.FC = () => {
     }
 
     if (selectedFile.size > MAX_FILE_SIZE) {
-      setMessage(`File is too large. Maximum allowed size is ${formatBytes(MAX_FILE_SIZE)}.`);
+      setMessage(`File is too large. Maximum allowed size is ${formatBytes(MAX_FILE_SIZE)} for free tier. For best results, use files under ${formatBytes(RECOMMENDED_FILE_SIZE)}.`);
       return;
+    }
+    
+    // Warning for files that might be slow
+    if (selectedFile.size > RECOMMENDED_FILE_SIZE) {
+      setMessage(`⚠️ Large file detected (${formatBytes(selectedFile.size)}). Processing may take several minutes or timeout on free tier. Consider using a smaller manual for testing.`);
     }
 
     setFile(selectedFile);
@@ -529,11 +535,24 @@ const UploadPage: React.FC = () => {
             <div>
               <h1 className="text-2xl font-semibold text-white">Upload Manual</h1>
               <p className="text-sm text-slate-400">
-                Upload PDF, HTML, or TXT manuals up to 50MB. Provide brand details to keep manuals organised.
+                Upload PDF, HTML, or TXT manuals up to 5MB. Smaller files work best on free tier.
               </p>
             </div>
           </div>
-          <div className="mt-5 flex items-start gap-2 rounded-lg border border-slate-800 bg-slate-900/80 p-3 text-sm text-slate-300">
+          <div className="mt-5 flex items-start gap-2 rounded-lg border border-yellow-800/50 bg-yellow-900/20 p-3 text-sm text-yellow-200">
+            <AlertCircle className="mt-0.5 h-4 w-4 text-yellow-400" />
+            <div>
+              <p className="font-medium">Free Tier Limitations</p>
+              <p className="mt-1 text-yellow-300/90">
+                <strong>Recommended:</strong> Files under 2MB (20-50 pages) process quickly.
+                <br />
+                <strong>Maximum:</strong> 5MB limit. Larger files may timeout during processing.
+                <br />
+                <strong>Tip:</strong> Extract specific sections from large manuals for best results.
+              </p>
+            </div>
+          </div>
+          <div className="mt-3 flex items-start gap-2 rounded-lg border border-slate-800 bg-slate-900/80 p-3 text-sm text-slate-300">
             <Info className="mt-0.5 h-4 w-4 text-sky-400" />
             <p>
               Manual IDs are auto-generated from filenames. You can adjust them before uploading. Once uploaded, the manual
