@@ -4,10 +4,10 @@ import os
 
 FALLBACK_MESSAGE = "I don't have that information in this manual. Could you rephrase your question or ask about something else?"
 
-# LLM Configuration
+# LLM Configuration - Using Groq with Llama 3
 USE_LLM = os.getenv("MANUAL_USE_LLM", "true").lower() == "true"
-LLM_API_URL = os.getenv("MANUAL_LLM_API_URL", "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct")
-LLM_API_KEY = os.getenv("HUGGINGFACE_TOKEN", os.getenv("HF_TOKEN", ""))
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+LLM_MODEL = os.getenv("LLM_MODEL", "llama-3.1-8b-instant")
 
 # Common stop words to filter out for better keyword extraction
 STOP_WORDS = {
@@ -53,51 +53,31 @@ class ConversationMemory:
 
 
 def _call_llm(prompt: str) -> str:
-    """Call HuggingFace Inference API for text generation"""
-    if not USE_LLM:
+    """Call Groq API with Llama 3 for text generation"""
+    if not USE_LLM or not GROQ_API_KEY:
         return ""
     
     try:
-        import requests
-        import json
+        from groq import Groq
         
-        headers = {
-            "Content-Type": "application/json"
-        }
+        client = Groq(api_key=GROQ_API_KEY)
         
-        # Add auth token if available
-        if LLM_API_KEY:
-            headers["Authorization"] = f"Bearer {LLM_API_KEY}"
-        
-        payload = {
-            "inputs": prompt,
-            "parameters": {
-                "max_new_tokens": 250,
-                "temperature": 0.7,
-                "top_p": 0.9,
-                "return_full_text": False
-            }
-        }
-        
-        response = requests.post(
-            LLM_API_URL,
-            headers=headers,
-            json=payload,
-            timeout=30
+        response = client.chat.completions.create(
+            model=LLM_MODEL,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=250,
+            top_p=0.9
         )
         
-        if response.status_code == 200:
-            result = response.json()
-            if isinstance(result, list) and len(result) > 0:
-                return result[0].get("generated_text", "").strip()
-            elif isinstance(result, dict):
-                return result.get("generated_text", "").strip()
-        else:
-            print(f"LLM API error: {response.status_code} - {response.text}")
-            return ""
+        if response.choices:
+            return response.choices[0].message.content.strip()
+        return ""
             
     except Exception as e:
-        print(f"LLM call failed: {e}")
+        print(f"Groq LLM call failed: {e}")
         return ""
 
 
@@ -432,13 +412,15 @@ def _deduplicate_docs(docs: List[Any]) -> List[Any]:
     return unique_docs
 
 
-def _call_llm(question: str, context: str) -> Optional[str]:
-    """Call HuggingFace Inference API with Phi-3 mini model"""
-    if not USE_LLM or not LLM_API_KEY:
+def _call_llm_with_context(question: str, context: str) -> Optional[str]:
+    """Call Groq API with Llama 3 for contextual question answering"""
+    if not USE_LLM or not GROQ_API_KEY:
         return None
     
     try:
-        import requests
+        from groq import Groq
+        
+        client = Groq(api_key=GROQ_API_KEY)
         
         full_prompt = f"""You are a helpful car manual assistant. Answer the user's question based on the manual context provided.
 
@@ -449,32 +431,23 @@ User question: {question}
 
 Provide a clear, concise answer based only on the context. If the context doesn't contain the answer, say so."""
 
-        headers = {"Authorization": f"Bearer {LLM_API_KEY}"}
-        payload = {
-            "inputs": full_prompt,
-            "parameters": {
-                "max_new_tokens": 250,
-                "temperature": 0.3,
-                "top_p": 0.9,
-                "do_sample": True
-            }
-        }
+        response = client.chat.completions.create(
+            model=LLM_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a helpful car manual assistant. Provide clear, accurate answers based on the context provided."},
+                {"role": "user", "content": full_prompt}
+            ],
+            temperature=0.3,
+            max_tokens=250,
+            top_p=0.9
+        )
         
-        response = requests.post(LLM_API_URL, headers=headers, json=payload, timeout=10)
-        
-        if response.status_code == 200:
-            result = response.json()
-            if isinstance(result, list) and len(result) > 0:
-                generated_text = result[0].get("generated_text", "")
-                # Extract only the answer part after the prompt
-                if "Provide a clear, concise answer" in generated_text:
-                    answer = generated_text.split("Provide a clear, concise answer")[-1].strip()
-                    return answer if answer else None
-                return generated_text
+        if response.choices:
+            return response.choices[0].message.content.strip()
         
         return None
     except Exception as e:
-        print(f"LLM call failed: {e}")
+        print(f"Groq LLM call failed: {e}")
         return None
 
 
@@ -511,9 +484,9 @@ def make_rag_chain(retriever):
                 return SimpleResponse(FALLBACK_MESSAGE)
 
             # Try LLM-based answer if enabled
-            if USE_LLM and LLM_API_KEY:
+            if USE_LLM and GROQ_API_KEY:
                 context = "\n\n".join([getattr(doc, "page_content", "")[:500] for doc in final_docs[:3]])
-                llm_answer = _call_llm(question, context)
+                llm_answer = _call_llm_with_context(question, context)
                 if llm_answer and len(llm_answer) > 50:  # Valid answer
                     return SimpleResponse(llm_answer)
 
