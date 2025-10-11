@@ -544,8 +544,9 @@ async def root():
 
 
 DOC_PATH = Path(os.getenv("MANUAL_PATH", "../data/README.md")).resolve()  # Use README instead of HTML
-UPLOAD_DIR = Path(os.getenv("MANUAL_UPLOAD_DIR", "/tmp/manualai/uploads")).resolve()
-STORAGE_DIR = Path(os.getenv("MANUAL_STORAGE_DIR", "/tmp/manualai/manual_store")).resolve()
+# Use relative paths for HuggingFace Spaces compatibility (no /tmp write access)
+UPLOAD_DIR = Path(os.getenv("MANUAL_UPLOAD_DIR", "./uploads")).resolve()
+STORAGE_DIR = Path(os.getenv("MANUAL_STORAGE_DIR", "./manual_store")).resolve()
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
