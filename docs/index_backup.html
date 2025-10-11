@@ -666,138 +666,35 @@ Query → Query Expansion (3 variations)
         </div>
     </section>
 
-    <!-- Error Analysis -->
-    <section id="error-analysis" style="background: white;">
-        <div class="container">
-            <h2>🔍 Error Analysis & Root Causes</h2>
-            <div style="max-width: 900px; margin: 0 auto;">
-                <p style="text-align: center; font-size: 1.1rem; margin-bottom: 40px; color: #64748b;">
-                    Understanding failure modes reveals system limitations and future directions
-                </p>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
-                    <div style="background: #fef2f2; padding: 25px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 2.5rem; font-weight: bold; color: #ef4444;">39%</div>
-                        <h4 style="color: #ef4444; margin: 15px 0;">Multi-hop Questions</h4>
-                        <p style="font-size: 0.9rem;">Requires synthesizing information from 2+ sections</p>
-                    </div>
-                    
-                    <div style="background: #fff7ed; padding: 25px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 2.5rem; font-weight: bold; color: #f59e0b;">28%</div>
-                        <h4 style="color: #f59e0b; margin: 15px 0;">Ambiguous Queries</h4>
-                        <p style="font-size: 0.9rem;">Multiple valid interpretations of the question</p>
-                    </div>
-                    
-                    <div style="background: #fef3c7; padding: 25px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 2.5rem; font-weight: bold; color: #eab308;">22%</div>
-                        <h4 style="color: #eab308; margin: 15px 0;">Visual Information</h4>
-                        <p style="font-size: 0.9rem;">Answer in tables/diagrams, not extractable text</p>
-                    </div>
-                    
-                    <div style="background: #eff6ff; padding: 25px; border-radius: 8px; text-align: center;">
-                        <div style="font-size: 2.5rem; font-weight: bold; color: #3b82f6;">11%</div>
-                        <h4 style="color: #3b82f6; margin: 15px 0;">Edge Cases</h4>
-                        <p style="font-size: 0.9rem;">Rare topics with insufficient context</p>
-                    </div>
-                </div>
-                
-                <div style="background: #f8fafc; padding: 25px; border-radius: 8px; border-left: 4px solid var(--primary);">
-                    <h4 style="color: var(--primary); margin-bottom: 15px;">💡 Key Insight from Error Analysis</h4>
-                    <p style="line-height: 1.8; font-size: 1.05rem;">
-                        <strong>61% of errors (11/18) stem from reasoning gaps, not retrieval failures.</strong> The system successfully finds relevant chunks but lacks the capability to synthesize information across contexts or resolve ambiguity. This suggests the next performance breakthrough requires <em>reasoning capabilities</em> (e.g., chain-of-thought, self-consistency) rather than improved retrieval algorithms.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- Key Insights -->
     <section id="insights">
         <div class="container">
-            <h2>💡 Data Science Insights & Learnings</h2>
-            <div style="max-width: 900px; margin: 0 auto;">
-                
-                <!-- Feature Ablation -->
-                <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 30px;">
-                    <h3 style="text-align: center; margin-bottom: 25px; color: var(--primary);">🎯 Feature Ablation Study</h3>
-                    <p style="text-align: center; margin-bottom: 25px; color: #64748b;">Impact of removing each component (in percentage points)</p>
-                    
-                    <div style="display: grid; gap: 12px;">
-                        <div style="display: flex; align-items: center; padding: 12px; background: var(--light); border-radius: 6px;">
-                            <div style="flex: 1; font-weight: 600;">Hybrid Search (semantic + BM25)</div>
-                            <div style="width: 150px; background: #e2e8f0; height: 24px; border-radius: 4px; position: relative; margin: 0 15px;">
-                                <div style="width: 85%; background: linear-gradient(90deg, var(--secondary), #059669); height: 100%; border-radius: 4px;"></div>
-                            </div>
-                            <div style="width: 60px; text-align: right; font-weight: bold; color: var(--secondary);">-12pp</div>
-                        </div>
-                        
-                        <div style="display: flex; align-items: center; padding: 12px; background: var(--light); border-radius: 6px;">
-                            <div style="flex: 1; font-weight: 600;">Cross-Encoder Reranking</div>
-                            <div style="width: 150px; background: #e2e8f0; height: 24px; border-radius: 4px; position: relative; margin: 0 15px;">
-                                <div style="width: 70%; background: linear-gradient(90deg, var(--primary), #1e40af); height: 100%; border-radius: 4px;"></div>
-                            </div>
-                            <div style="width: 60px; text-align: right; font-weight: bold; color: var(--primary);">-10pp</div>
-                        </div>
-                        
-                        <div style="display: flex; align-items: center; padding: 12px; background: var(--light); border-radius: 6px;">
-                            <div style="flex: 1; font-weight: 600;">Large Context (3000 chars)</div>
-                            <div style="width: 150px; background: #e2e8f0; height: 24px; border-radius: 4px; position: relative; margin: 0 15px;">
-                                <div style="width: 55%; background: linear-gradient(90deg, var(--accent), #d97706); height: 100%; border-radius: 4px;"></div>
-                            </div>
-                            <div style="width: 60px; text-align: right; font-weight: bold; color: var(--accent);">-8pp</div>
-                        </div>
-                        
-                        <div style="display: flex; align-items: center; padding: 12px; background: var(--light); border-radius: 6px;">
-                            <div style="flex: 1; font-weight: 600;">Query Expansion</div>
-                            <div style="width: 150px; background: #e2e8f0; height: 24px; border-radius: 4px; position: relative; margin: 0 15px;">
-                                <div style="width: 18%; background: #94a3b8; height: 100%; border-radius: 4px;"></div>
-                            </div>
-                            <div style="width: 60px; text-align: right; font-weight: bold; color: #64748b;">-2pp</div>
-                        </div>
-                    </div>
+            <h2>💡 Key Insights</h2>
+            <div class="results-grid">
+                <div class="result-card">
+                    <h3>✅ What Worked</h3>
+                    <ul style="text-align: left; margin-top: 15px;">
+                        <li>Hybrid search (semantic + BM25)</li>
+                        <li>Large chunks (3000 chars)</li>
+                        <li>Cross-encoder reranking</li>
+                        <li>Query expansion</li>
+                        <li>Page-aware voting</li>
+                    </ul>
                 </div>
-
-                <!-- What Worked/Failed -->
-                <div class="results-grid">
-                    <div class="result-card">
-                        <h3 style="color: var(--secondary);">✅ What Worked</h3>
-                        <ul style="text-align: left; margin-top: 15px; line-height: 2;">
-                            <li><strong>Hybrid retrieval:</strong> Combined strengths of semantic + keyword search</li>
-                            <li><strong>Large context:</strong> 3000-char chunks preserved answer coherence</li>
-                            <li><strong>Two-stage ranking:</strong> Fast retrieval + slow reranking balanced speed/accuracy</li>
-                            <li><strong>30% overlap:</strong> Prevented boundary information loss</li>
-                        </ul>
-                    </div>
-                    <div class="result-card">
-                        <h3 style="color: #ef4444;">❌ What Failed</h3>
-                        <ul style="text-align: left; margin-top: 15px; line-height: 2;">
-                            <li><strong>Over-optimization:</strong> 6 experiments caused 64%→52% regression</li>
-                            <li><strong>Multi-stage retrieval:</strong> Added complexity, no gains</li>
-                            <li><strong>Very large chunks:</strong> 4000+ chars introduced noise</li>
-                            <li><strong>Extreme parameters:</strong> Voting weights >5.0 destabilized predictions</li>
-                        </ul>
-                    </div>
+                <div class="result-card">
+                    <h3>❌ What Failed</h3>
+                    <ul style="text-align: left; margin-top: 15px;">
+                        <li>Over-optimization (64% → 52%)</li>
+                        <li>Multi-stage retrieval</li>
+                        <li>Extreme voting parameters</li>
+                        <li>Very large chunks (4000+)</li>
+                    </ul>
                 </div>
-
-                <!-- Critical Learnings -->
-                <div style="margin-top: 30px; padding: 35px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; box-shadow: 0 10px 30px rgba(102,126,234,0.3);">
-                    <h3 style="text-align: center; margin-bottom: 25px; color: white; font-size: 1.8rem;">🎓 Critical Data Science Learnings</h3>
-                    <div style="display: grid; gap: 20px;">
-                        <div style="padding: 20px; background: rgba(255,255,255,0.15); border-radius: 8px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
-                            <h4 style="color: white; margin-bottom: 12px; font-size: 1.2rem;">📉 Diminishing Returns & Overfitting Detection</h4>
-                            <p style="line-height: 1.8;">After achieving 64% accuracy, six additional optimization attempts yielded <strong>zero improvement</strong>—some even decreased performance to 52%. This plateau indicated I had reached the fundamental limits of retrieval-based approaches. <strong>Takeaway:</strong> Monitor validation curves carefully; continued optimization beyond plateaus often leads to overfitting.</p>
-                        </div>
-                        
-                        <div style="padding: 20px; background: rgba(255,255,255,0.15); border-radius: 8px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
-                            <h4 style="color: white; margin-bottom: 12px; font-size: 1.2rem;">⚖️ Occam's Razor in Production ML</h4>
-                            <p style="line-height: 1.8;">The winning solution combined just 4 techniques. More complex multi-stage pipelines with 8+ components performed worse and were harder to debug. <strong>Takeaway:</strong> Start with simple baselines, add complexity incrementally, and require each addition to prove its value on held-out data.</p>
-                        </div>
-                        
-                        <div style="padding: 20px; background: rgba(255,255,255,0.15); border-radius: 8px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
-                            <h4 style="color: white; margin-bottom: 12px; font-size: 1.2rem;">🔬 Qual + Quant Analysis</h4>
-                            <p style="line-height: 1.8;">Error analysis revealed 61% of failures required <em>reasoning</em>, not better retrieval. Quantitative metrics (64% accuracy) told me performance was good; qualitative analysis told me <em>why</em> and <em>where to improve next</em>. <strong>Takeaway:</strong> Always complement quantitative metrics with deep-dive error analysis.</p>
-                        </div>
-                    </div>
+                <div class="result-card">
+                    <h3>🎓 The Learning</h3>
+                    <p style="text-align: left; margin-top: 15px; font-style: italic;">
+                        "Simple, well-tuned solutions beat complex ones. After 6 failed optimization attempts, I learned to recognize fundamental limits and when to stop adding complexity."
+                    </p>
                 </div>
             </div>
         </div>
