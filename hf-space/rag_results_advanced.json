@@ -1,0 +1,2073 @@
+{
+  "timestamp": "2025-10-10 20:26:52",
+  "config": {
+    "embedding_model": "all-mpnet-base-v2",
+    "reranker_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+    "initial_top_k": 40,
+    "final_top_k": 8,
+    "bm25_weight": 0.4,
+    "semantic_weight": 0.6
+  },
+  "results": [
+    {
+      "strategy_name": "Large Chunks",
+      "chunk_size": 1200,
+      "chunk_overlap": 250,
+      "num_chunks": 873,
+      "accuracy": 24.0,
+      "correct": 12,
+      "total": 50,
+      "avg_latency": 4.735271215438843,
+      "predictions": [
+        {
+          "id": "T4R-001",
+          "question": "What should you do if the \u2018Braking Power Low Stop in a Safe Place\u2019 message appears?",
+          "ground_truth": 490,
+          "predicted": 490,
+          "correct": true,
+          "latency": 4.237738370895386
+        },
+        {
+          "id": "T4R-002",
+          "question": "What does the PCS warning light indicate?",
+          "ground_truth": 481,
+          "predicted": 481,
+          "correct": true,
+          "latency": 4.826931715011597
+        },
+        {
+          "id": "T4R-003",
+          "question": "When should you not add washer fluid?",
+          "ground_truth": 426,
+          "predicted": 426,
+          "correct": true,
+          "latency": 3.163515329360962
+        },
+        {
+          "id": "T4R-004",
+          "question": "How should you handle the SRS airbag system when scrapping the vehicle?",
+          "ground_truth": 12,
+          "predicted": 43,
+          "correct": false,
+          "latency": 6.955387830734253
+        },
+        {
+          "id": "T4R-005",
+          "question": "What does the tire pressure warning light mean?",
+          "ground_truth": 481,
+          "predicted": 486,
+          "correct": false,
+          "latency": 4.0813493728637695
+        },
+        {
+          "id": "T4R-006",
+          "question": "What precautions apply when handling brake fluid?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 3.3462650775909424
+        },
+        {
+          "id": "T4R-007",
+          "question": "What does the KDSS warning light mean?",
+          "ground_truth": 480,
+          "predicted": 479,
+          "correct": false,
+          "latency": 6.242251396179199
+        },
+        {
+          "id": "T4R-008",
+          "question": "How do you know if the parking brake is still engaged?",
+          "ground_truth": 481,
+          "predicted": 173,
+          "correct": false,
+          "latency": 5.634936571121216
+        },
+        {
+          "id": "T4R-009",
+          "question": "What should you do when the \u2018Engine Coolant Temp High\u2019 message appears?",
+          "ground_truth": 519,
+          "predicted": 490,
+          "correct": false,
+          "latency": 4.350873231887817
+        },
+        {
+          "id": "T4R-010",
+          "question": "How should you respond to the \u2018Oil Pressure Low\u2019 warning?",
+          "ground_truth": 490,
+          "predicted": 486,
+          "correct": false,
+          "latency": 3.547353744506836
+        },
+        {
+          "id": "T4R-011",
+          "question": "What does the low fuel level warning mean?",
+          "ground_truth": 480,
+          "predicted": 486,
+          "correct": false,
+          "latency": 5.294811964035034
+        },
+        {
+          "id": "T4R-012",
+          "question": "What should you do if the Smart Key System Malfunction message appears?",
+          "ground_truth": 490,
+          "predicted": 490,
+          "correct": true,
+          "latency": 3.207690954208374
+        },
+        {
+          "id": "T4R-013",
+          "question": "What does the seat belt reminder buzzer mean?",
+          "ground_truth": 481,
+          "predicted": 580,
+          "correct": false,
+          "latency": 5.458235502243042
+        },
+        {
+          "id": "T4R-014",
+          "question": "What does the master warning light indicate?",
+          "ground_truth": 488,
+          "predicted": 481,
+          "correct": false,
+          "latency": 5.221256732940674
+        },
+        {
+          "id": "T4R-015",
+          "question": "How do you check if a door is fully closed?",
+          "ground_truth": 480,
+          "predicted": 107,
+          "correct": false,
+          "latency": 5.19148850440979
+        },
+        {
+          "id": "T4R-016",
+          "question": "What does the ABS warning light mean?",
+          "ground_truth": 478,
+          "predicted": 87,
+          "correct": false,
+          "latency": 4.877183675765991
+        },
+        {
+          "id": "T4R-017",
+          "question": "How often should tires be rotated?",
+          "ground_truth": 429,
+          "predicted": 428,
+          "correct": false,
+          "latency": 5.5964624881744385
+        },
+        {
+          "id": "T4R-018",
+          "question": "How can you tell when tires need replacement?",
+          "ground_truth": 428,
+          "predicted": 487,
+          "correct": false,
+          "latency": 5.458166122436523
+        },
+        {
+          "id": "T4R-019",
+          "question": "When must the tire pressure warning system be initialized?",
+          "ground_truth": 431,
+          "predicted": 436,
+          "correct": false,
+          "latency": 3.163792610168457
+        },
+        {
+          "id": "T4R-020",
+          "question": "How should washer fluid be diluted?",
+          "ground_truth": 427,
+          "predicted": 426,
+          "correct": false,
+          "latency": 3.3856801986694336
+        },
+        {
+          "id": "T4R-021",
+          "question": "What type of brake fluid should be used?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.355826139450073
+        },
+        {
+          "id": "T4R-022",
+          "question": "How do you refill brake fluid safely?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 3.195939064025879
+        },
+        {
+          "id": "T4R-023",
+          "question": "What should be checked when inspecting the radiator and condenser?",
+          "ground_truth": 419,
+          "predicted": 405,
+          "correct": false,
+          "latency": 4.67580509185791
+        },
+        {
+          "id": "T4R-024",
+          "question": "How should you check power steering fluid?",
+          "ground_truth": 421,
+          "predicted": 405,
+          "correct": false,
+          "latency": 5.0762245655059814
+        },
+        {
+          "id": "T4R-025",
+          "question": "What happens if you use soapy water instead of washer fluid?",
+          "ground_truth": 426,
+          "predicted": 426,
+          "correct": true,
+          "latency": 3.4394466876983643
+        },
+        {
+          "id": "T4R-026",
+          "question": "What does the Event Data Recorder (EDR) record?",
+          "ground_truth": 11,
+          "predicted": 10,
+          "correct": false,
+          "latency": 5.324012994766235
+        },
+        {
+          "id": "T4R-027",
+          "question": "Who can access recorded EDR data?",
+          "ground_truth": 11,
+          "predicted": 10,
+          "correct": false,
+          "latency": 5.1799235343933105
+        },
+        {
+          "id": "T4R-028",
+          "question": "What components may contain perchlorate material?",
+          "ground_truth": 12,
+          "predicted": 11,
+          "correct": false,
+          "latency": 5.616450071334839
+        },
+        {
+          "id": "T4R-029",
+          "question": "What should you avoid when washing the vehicle floor?",
+          "ground_truth": 403,
+          "predicted": 402,
+          "correct": false,
+          "latency": 6.0524890422821045
+        },
+        {
+          "id": "T4R-030",
+          "question": "What does the Tire Pressure Monitoring System (TPMS) do?",
+          "ground_truth": 430,
+          "predicted": 486,
+          "correct": false,
+          "latency": 6.020992279052734
+        },
+        {
+          "id": "T4R-031",
+          "question": "What\u2019s the correct order for tire rotation on non-P245/60R20 tires?",
+          "ground_truth": 429,
+          "predicted": 484,
+          "correct": false,
+          "latency": 5.797091484069824
+        },
+        {
+          "id": "T4R-032",
+          "question": "How can uneven tire wear affect performance?",
+          "ground_truth": 428,
+          "predicted": 434,
+          "correct": false,
+          "latency": 5.058998107910156
+        },
+        {
+          "id": "T4R-033",
+          "question": "What should be done if ABS warning stays on after startup?",
+          "ground_truth": 478,
+          "predicted": 87,
+          "correct": false,
+          "latency": 3.24723744392395
+        },
+        {
+          "id": "T4R-034",
+          "question": "What does \u2018LDA Unavailable\u2019 mean?",
+          "ground_truth": 252,
+          "predicted": 256,
+          "correct": false,
+          "latency": 5.408142566680908
+        },
+        {
+          "id": "T4R-035",
+          "question": "How to correct when \u2018Front Camera Unavailable\u2019 is shown?",
+          "ground_truth": 237,
+          "predicted": 237,
+          "correct": true,
+          "latency": 5.051985502243042
+        },
+        {
+          "id": "T4R-036",
+          "question": "When should new tire pressure transmitter IDs be registered?",
+          "ground_truth": 431,
+          "predicted": 437,
+          "correct": false,
+          "latency": 3.5652151107788086
+        },
+        {
+          "id": "T4R-037",
+          "question": "What are the risks of using old brake fluid?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 3.2624800205230713
+        },
+        {
+          "id": "T4R-038",
+          "question": "Why must radiator and condenser not be touched when hot?",
+          "ground_truth": 420,
+          "predicted": 411,
+          "correct": false,
+          "latency": 3.4177005290985107
+        },
+        {
+          "id": "T4R-039",
+          "question": "What causes the \u2018Brake Override System\u2019 light to flash?",
+          "ground_truth": 481,
+          "predicted": 310,
+          "correct": false,
+          "latency": 5.138800621032715
+        },
+        {
+          "id": "T4R-040",
+          "question": "How should tires with \u2018TWI\u2019 markings be interpreted?",
+          "ground_truth": 428,
+          "predicted": 547,
+          "correct": false,
+          "latency": 5.6161651611328125
+        },
+        {
+          "id": "T4R-041",
+          "question": "How can the event data help improve safety?",
+          "ground_truth": 11,
+          "predicted": 10,
+          "correct": false,
+          "latency": 5.703693389892578
+        },
+        {
+          "id": "T4R-042",
+          "question": "What should you do before adding brake fluid?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 3.597154140472412
+        },
+        {
+          "id": "T4R-043",
+          "question": "How do you identify if the master warning system is active?",
+          "ground_truth": 488,
+          "predicted": 481,
+          "correct": false,
+          "latency": 5.039961576461792
+        },
+        {
+          "id": "T4R-044",
+          "question": "What should you check if your windshield wipers stop spraying?",
+          "ground_truth": 426,
+          "predicted": 227,
+          "correct": false,
+          "latency": 4.8425071239471436
+        },
+        {
+          "id": "T4R-045",
+          "question": "How does the seat belt pretensioner help in a crash?",
+          "ground_truth": 12,
+          "predicted": 33,
+          "correct": false,
+          "latency": 4.942790269851685
+        },
+        {
+          "id": "T4R-046",
+          "question": "When the master light flashes with a buzzer, what is implied?",
+          "ground_truth": 490,
+          "predicted": 481,
+          "correct": false,
+          "latency": 5.830249547958374
+        },
+        {
+          "id": "T4R-047",
+          "question": "How can incorrect tire rotation affect the vehicle?",
+          "ground_truth": 429,
+          "predicted": 174,
+          "correct": false,
+          "latency": 5.015021562576294
+        },
+        {
+          "id": "T4R-048",
+          "question": "What does the \u2018Front Camera Unavailable\u2019 message suggest?",
+          "ground_truth": 237,
+          "predicted": 237,
+          "correct": true,
+          "latency": 2.9555673599243164
+        },
+        {
+          "id": "T4R-049",
+          "question": "What happens if the ABS and Brake warning lights turn on together?",
+          "ground_truth": 478,
+          "predicted": 87,
+          "correct": false,
+          "latency": 4.839404582977295
+        },
+        {
+          "id": "T4R-050",
+          "question": "Why must washer fluid freezing point be considered?",
+          "ground_truth": 427,
+          "predicted": 426,
+          "correct": false,
+          "latency": 5.254913806915283
+        }
+      ]
+    },
+    {
+      "strategy_name": "Very Large Chunks",
+      "chunk_size": 1600,
+      "chunk_overlap": 400,
+      "num_chunks": 734,
+      "accuracy": 28.000000000000004,
+      "correct": 14,
+      "total": 50,
+      "avg_latency": 5.209732060432434,
+      "predictions": [
+        {
+          "id": "T4R-001",
+          "question": "What should you do if the \u2018Braking Power Low Stop in a Safe Place\u2019 message appears?",
+          "ground_truth": 490,
+          "predicted": 169,
+          "correct": false,
+          "latency": 4.168985843658447
+        },
+        {
+          "id": "T4R-002",
+          "question": "What does the PCS warning light indicate?",
+          "ground_truth": 481,
+          "predicted": 481,
+          "correct": true,
+          "latency": 4.673648834228516
+        },
+        {
+          "id": "T4R-003",
+          "question": "When should you not add washer fluid?",
+          "ground_truth": 426,
+          "predicted": 426,
+          "correct": true,
+          "latency": 4.573683977127075
+        },
+        {
+          "id": "T4R-004",
+          "question": "How should you handle the SRS airbag system when scrapping the vehicle?",
+          "ground_truth": 12,
+          "predicted": 43,
+          "correct": false,
+          "latency": 4.6028361320495605
+        },
+        {
+          "id": "T4R-005",
+          "question": "What does the tire pressure warning light mean?",
+          "ground_truth": 481,
+          "predicted": 486,
+          "correct": false,
+          "latency": 5.268879175186157
+        },
+        {
+          "id": "T4R-006",
+          "question": "What precautions apply when handling brake fluid?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 3.6889753341674805
+        },
+        {
+          "id": "T4R-007",
+          "question": "What does the KDSS warning light mean?",
+          "ground_truth": 480,
+          "predicted": 479,
+          "correct": false,
+          "latency": 5.122450590133667
+        },
+        {
+          "id": "T4R-008",
+          "question": "How do you know if the parking brake is still engaged?",
+          "ground_truth": 481,
+          "predicted": 332,
+          "correct": false,
+          "latency": 4.801270484924316
+        },
+        {
+          "id": "T4R-009",
+          "question": "What should you do when the \u2018Engine Coolant Temp High\u2019 message appears?",
+          "ground_truth": 519,
+          "predicted": 490,
+          "correct": false,
+          "latency": 4.101875305175781
+        },
+        {
+          "id": "T4R-010",
+          "question": "How should you respond to the \u2018Oil Pressure Low\u2019 warning?",
+          "ground_truth": 490,
+          "predicted": 486,
+          "correct": false,
+          "latency": 5.668016672134399
+        },
+        {
+          "id": "T4R-011",
+          "question": "What does the low fuel level warning mean?",
+          "ground_truth": 480,
+          "predicted": 480,
+          "correct": true,
+          "latency": 5.716587066650391
+        },
+        {
+          "id": "T4R-012",
+          "question": "What should you do if the Smart Key System Malfunction message appears?",
+          "ground_truth": 490,
+          "predicted": 490,
+          "correct": true,
+          "latency": 3.5874669551849365
+        },
+        {
+          "id": "T4R-013",
+          "question": "What does the seat belt reminder buzzer mean?",
+          "ground_truth": 481,
+          "predicted": 480,
+          "correct": false,
+          "latency": 5.255056381225586
+        },
+        {
+          "id": "T4R-014",
+          "question": "What does the master warning light indicate?",
+          "ground_truth": 488,
+          "predicted": 488,
+          "correct": true,
+          "latency": 4.825256824493408
+        },
+        {
+          "id": "T4R-015",
+          "question": "How do you check if a door is fully closed?",
+          "ground_truth": 480,
+          "predicted": 107,
+          "correct": false,
+          "latency": 4.703174591064453
+        },
+        {
+          "id": "T4R-016",
+          "question": "What does the ABS warning light mean?",
+          "ground_truth": 478,
+          "predicted": 478,
+          "correct": true,
+          "latency": 5.067783355712891
+        },
+        {
+          "id": "T4R-017",
+          "question": "How often should tires be rotated?",
+          "ground_truth": 429,
+          "predicted": 428,
+          "correct": false,
+          "latency": 4.580995321273804
+        },
+        {
+          "id": "T4R-018",
+          "question": "How can you tell when tires need replacement?",
+          "ground_truth": 428,
+          "predicted": 444,
+          "correct": false,
+          "latency": 4.876289129257202
+        },
+        {
+          "id": "T4R-019",
+          "question": "When must the tire pressure warning system be initialized?",
+          "ground_truth": 431,
+          "predicted": 436,
+          "correct": false,
+          "latency": 3.475173234939575
+        },
+        {
+          "id": "T4R-020",
+          "question": "How should washer fluid be diluted?",
+          "ground_truth": 427,
+          "predicted": 426,
+          "correct": false,
+          "latency": 3.9173388481140137
+        },
+        {
+          "id": "T4R-021",
+          "question": "What type of brake fluid should be used?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.662191867828369
+        },
+        {
+          "id": "T4R-022",
+          "question": "How do you refill brake fluid safely?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 4.399068117141724
+        },
+        {
+          "id": "T4R-023",
+          "question": "What should be checked when inspecting the radiator and condenser?",
+          "ground_truth": 419,
+          "predicted": 405,
+          "correct": false,
+          "latency": 4.3573317527771
+        },
+        {
+          "id": "T4R-024",
+          "question": "How should you check power steering fluid?",
+          "ground_truth": 421,
+          "predicted": 405,
+          "correct": false,
+          "latency": 5.203411340713501
+        },
+        {
+          "id": "T4R-025",
+          "question": "What happens if you use soapy water instead of washer fluid?",
+          "ground_truth": 426,
+          "predicted": 426,
+          "correct": true,
+          "latency": 3.997530698776245
+        },
+        {
+          "id": "T4R-026",
+          "question": "What does the Event Data Recorder (EDR) record?",
+          "ground_truth": 11,
+          "predicted": 10,
+          "correct": false,
+          "latency": 5.110618591308594
+        },
+        {
+          "id": "T4R-027",
+          "question": "Who can access recorded EDR data?",
+          "ground_truth": 11,
+          "predicted": 10,
+          "correct": false,
+          "latency": 5.071897506713867
+        },
+        {
+          "id": "T4R-028",
+          "question": "What components may contain perchlorate material?",
+          "ground_truth": 12,
+          "predicted": 11,
+          "correct": false,
+          "latency": 5.335589647293091
+        },
+        {
+          "id": "T4R-029",
+          "question": "What should you avoid when washing the vehicle floor?",
+          "ground_truth": 403,
+          "predicted": 397,
+          "correct": false,
+          "latency": 5.483353137969971
+        },
+        {
+          "id": "T4R-030",
+          "question": "What does the Tire Pressure Monitoring System (TPMS) do?",
+          "ground_truth": 430,
+          "predicted": 486,
+          "correct": false,
+          "latency": 5.06153678894043
+        },
+        {
+          "id": "T4R-031",
+          "question": "What\u2019s the correct order for tire rotation on non-P245/60R20 tires?",
+          "ground_truth": 429,
+          "predicted": 428,
+          "correct": false,
+          "latency": 4.307302474975586
+        },
+        {
+          "id": "T4R-032",
+          "question": "How can uneven tire wear affect performance?",
+          "ground_truth": 428,
+          "predicted": 434,
+          "correct": false,
+          "latency": 5.467562675476074
+        },
+        {
+          "id": "T4R-033",
+          "question": "What should be done if ABS warning stays on after startup?",
+          "ground_truth": 478,
+          "predicted": 87,
+          "correct": false,
+          "latency": 3.842871904373169
+        },
+        {
+          "id": "T4R-034",
+          "question": "What does \u2018LDA Unavailable\u2019 mean?",
+          "ground_truth": 252,
+          "predicted": 251,
+          "correct": false,
+          "latency": 5.61111307144165
+        },
+        {
+          "id": "T4R-035",
+          "question": "How to correct when \u2018Front Camera Unavailable\u2019 is shown?",
+          "ground_truth": 237,
+          "predicted": 237,
+          "correct": true,
+          "latency": 5.650728702545166
+        },
+        {
+          "id": "T4R-036",
+          "question": "When should new tire pressure transmitter IDs be registered?",
+          "ground_truth": 431,
+          "predicted": 437,
+          "correct": false,
+          "latency": 4.640153408050537
+        },
+        {
+          "id": "T4R-037",
+          "question": "What are the risks of using old brake fluid?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.552273273468018
+        },
+        {
+          "id": "T4R-038",
+          "question": "Why must radiator and condenser not be touched when hot?",
+          "ground_truth": 420,
+          "predicted": 411,
+          "correct": false,
+          "latency": 4.012268543243408
+        },
+        {
+          "id": "T4R-039",
+          "question": "What causes the \u2018Brake Override System\u2019 light to flash?",
+          "ground_truth": 481,
+          "predicted": 310,
+          "correct": false,
+          "latency": 5.018851280212402
+        },
+        {
+          "id": "T4R-040",
+          "question": "How should tires with \u2018TWI\u2019 markings be interpreted?",
+          "ground_truth": 428,
+          "predicted": 486,
+          "correct": false,
+          "latency": 7.816421270370483
+        },
+        {
+          "id": "T4R-041",
+          "question": "How can the event data help improve safety?",
+          "ground_truth": 11,
+          "predicted": 10,
+          "correct": false,
+          "latency": 6.984236240386963
+        },
+        {
+          "id": "T4R-042",
+          "question": "What should you do before adding brake fluid?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.562823057174683
+        },
+        {
+          "id": "T4R-043",
+          "question": "How do you identify if the master warning system is active?",
+          "ground_truth": 488,
+          "predicted": 488,
+          "correct": true,
+          "latency": 6.882927417755127
+        },
+        {
+          "id": "T4R-044",
+          "question": "What should you check if your windshield wipers stop spraying?",
+          "ground_truth": 426,
+          "predicted": 225,
+          "correct": false,
+          "latency": 7.639312982559204
+        },
+        {
+          "id": "T4R-045",
+          "question": "How does the seat belt pretensioner help in a crash?",
+          "ground_truth": 12,
+          "predicted": 33,
+          "correct": false,
+          "latency": 7.120432376861572
+        },
+        {
+          "id": "T4R-046",
+          "question": "When the master light flashes with a buzzer, what is implied?",
+          "ground_truth": 490,
+          "predicted": 481,
+          "correct": false,
+          "latency": 6.966318368911743
+        },
+        {
+          "id": "T4R-047",
+          "question": "How can incorrect tire rotation affect the vehicle?",
+          "ground_truth": 429,
+          "predicted": 428,
+          "correct": false,
+          "latency": 6.625509023666382
+        },
+        {
+          "id": "T4R-048",
+          "question": "What does the \u2018Front Camera Unavailable\u2019 message suggest?",
+          "ground_truth": 237,
+          "predicted": 490,
+          "correct": false,
+          "latency": 5.2479517459869385
+        },
+        {
+          "id": "T4R-049",
+          "question": "What happens if the ABS and Brake warning lights turn on together?",
+          "ground_truth": 478,
+          "predicted": 477,
+          "correct": false,
+          "latency": 6.742097854614258
+        },
+        {
+          "id": "T4R-050",
+          "question": "Why must washer fluid freezing point be considered?",
+          "ground_truth": 427,
+          "predicted": 426,
+          "correct": false,
+          "latency": 6.437173843383789
+        }
+      ]
+    },
+    {
+      "strategy_name": "Extra Large Chunks",
+      "chunk_size": 2000,
+      "chunk_overlap": 500,
+      "num_chunks": 657,
+      "accuracy": 22.0,
+      "correct": 11,
+      "total": 50,
+      "avg_latency": 5.527183513641358,
+      "predictions": [
+        {
+          "id": "T4R-001",
+          "question": "What should you do if the \u2018Braking Power Low Stop in a Safe Place\u2019 message appears?",
+          "ground_truth": 490,
+          "predicted": 486,
+          "correct": false,
+          "latency": 5.692453622817993
+        },
+        {
+          "id": "T4R-002",
+          "question": "What does the PCS warning light indicate?",
+          "ground_truth": 481,
+          "predicted": 481,
+          "correct": true,
+          "latency": 5.949179172515869
+        },
+        {
+          "id": "T4R-003",
+          "question": "When should you not add washer fluid?",
+          "ground_truth": 426,
+          "predicted": 426,
+          "correct": true,
+          "latency": 5.598649263381958
+        },
+        {
+          "id": "T4R-004",
+          "question": "How should you handle the SRS airbag system when scrapping the vehicle?",
+          "ground_truth": 12,
+          "predicted": 43,
+          "correct": false,
+          "latency": 6.294564723968506
+        },
+        {
+          "id": "T4R-005",
+          "question": "What does the tire pressure warning light mean?",
+          "ground_truth": 481,
+          "predicted": 486,
+          "correct": false,
+          "latency": 6.310126543045044
+        },
+        {
+          "id": "T4R-006",
+          "question": "What precautions apply when handling brake fluid?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 4.999658823013306
+        },
+        {
+          "id": "T4R-007",
+          "question": "What does the KDSS warning light mean?",
+          "ground_truth": 480,
+          "predicted": 84,
+          "correct": false,
+          "latency": 5.404779672622681
+        },
+        {
+          "id": "T4R-008",
+          "question": "How do you know if the parking brake is still engaged?",
+          "ground_truth": 481,
+          "predicted": 327,
+          "correct": false,
+          "latency": 5.270313501358032
+        },
+        {
+          "id": "T4R-009",
+          "question": "What should you do when the \u2018Engine Coolant Temp High\u2019 message appears?",
+          "ground_truth": 519,
+          "predicted": 490,
+          "correct": false,
+          "latency": 5.21056604385376
+        },
+        {
+          "id": "T4R-010",
+          "question": "How should you respond to the \u2018Oil Pressure Low\u2019 warning?",
+          "ground_truth": 490,
+          "predicted": 486,
+          "correct": false,
+          "latency": 5.501828193664551
+        },
+        {
+          "id": "T4R-011",
+          "question": "What does the low fuel level warning mean?",
+          "ground_truth": 480,
+          "predicted": 486,
+          "correct": false,
+          "latency": 5.410869359970093
+        },
+        {
+          "id": "T4R-012",
+          "question": "What should you do if the Smart Key System Malfunction message appears?",
+          "ground_truth": 490,
+          "predicted": 117,
+          "correct": false,
+          "latency": 5.104293346405029
+        },
+        {
+          "id": "T4R-013",
+          "question": "What does the seat belt reminder buzzer mean?",
+          "ground_truth": 481,
+          "predicted": 485,
+          "correct": false,
+          "latency": 5.7036285400390625
+        },
+        {
+          "id": "T4R-014",
+          "question": "What does the master warning light indicate?",
+          "ground_truth": 488,
+          "predicted": 488,
+          "correct": true,
+          "latency": 5.624557256698608
+        },
+        {
+          "id": "T4R-015",
+          "question": "How do you check if a door is fully closed?",
+          "ground_truth": 480,
+          "predicted": 156,
+          "correct": false,
+          "latency": 5.711505651473999
+        },
+        {
+          "id": "T4R-016",
+          "question": "What does the ABS warning light mean?",
+          "ground_truth": 478,
+          "predicted": 478,
+          "correct": true,
+          "latency": 4.9699177742004395
+        },
+        {
+          "id": "T4R-017",
+          "question": "How often should tires be rotated?",
+          "ground_truth": 429,
+          "predicted": 428,
+          "correct": false,
+          "latency": 5.407480478286743
+        },
+        {
+          "id": "T4R-018",
+          "question": "How can you tell when tires need replacement?",
+          "ground_truth": 428,
+          "predicted": 433,
+          "correct": false,
+          "latency": 5.2687084674835205
+        },
+        {
+          "id": "T4R-019",
+          "question": "When must the tire pressure warning system be initialized?",
+          "ground_truth": 431,
+          "predicted": 437,
+          "correct": false,
+          "latency": 5.082592725753784
+        },
+        {
+          "id": "T4R-020",
+          "question": "How should washer fluid be diluted?",
+          "ground_truth": 427,
+          "predicted": 426,
+          "correct": false,
+          "latency": 5.178922653198242
+        },
+        {
+          "id": "T4R-021",
+          "question": "What type of brake fluid should be used?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.40296196937561
+        },
+        {
+          "id": "T4R-022",
+          "question": "How do you refill brake fluid safely?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.5016419887542725
+        },
+        {
+          "id": "T4R-023",
+          "question": "What should be checked when inspecting the radiator and condenser?",
+          "ground_truth": 419,
+          "predicted": 405,
+          "correct": false,
+          "latency": 6.091107368469238
+        },
+        {
+          "id": "T4R-024",
+          "question": "How should you check power steering fluid?",
+          "ground_truth": 421,
+          "predicted": 405,
+          "correct": false,
+          "latency": 5.523932695388794
+        },
+        {
+          "id": "T4R-025",
+          "question": "What happens if you use soapy water instead of washer fluid?",
+          "ground_truth": 426,
+          "predicted": 426,
+          "correct": true,
+          "latency": 6.158747673034668
+        },
+        {
+          "id": "T4R-026",
+          "question": "What does the Event Data Recorder (EDR) record?",
+          "ground_truth": 11,
+          "predicted": 10,
+          "correct": false,
+          "latency": 6.2213287353515625
+        },
+        {
+          "id": "T4R-027",
+          "question": "Who can access recorded EDR data?",
+          "ground_truth": 11,
+          "predicted": 10,
+          "correct": false,
+          "latency": 5.794034957885742
+        },
+        {
+          "id": "T4R-028",
+          "question": "What components may contain perchlorate material?",
+          "ground_truth": 12,
+          "predicted": 11,
+          "correct": false,
+          "latency": 6.192692279815674
+        },
+        {
+          "id": "T4R-029",
+          "question": "What should you avoid when washing the vehicle floor?",
+          "ground_truth": 403,
+          "predicted": 396,
+          "correct": false,
+          "latency": 5.275551795959473
+        },
+        {
+          "id": "T4R-030",
+          "question": "What does the Tire Pressure Monitoring System (TPMS) do?",
+          "ground_truth": 430,
+          "predicted": 486,
+          "correct": false,
+          "latency": 5.419560432434082
+        },
+        {
+          "id": "T4R-031",
+          "question": "What\u2019s the correct order for tire rotation on non-P245/60R20 tires?",
+          "ground_truth": 429,
+          "predicted": 428,
+          "correct": false,
+          "latency": 4.836644172668457
+        },
+        {
+          "id": "T4R-032",
+          "question": "How can uneven tire wear affect performance?",
+          "ground_truth": 428,
+          "predicted": 427,
+          "correct": false,
+          "latency": 5.39777398109436
+        },
+        {
+          "id": "T4R-033",
+          "question": "What should be done if ABS warning stays on after startup?",
+          "ground_truth": 478,
+          "predicted": 490,
+          "correct": false,
+          "latency": 4.938547372817993
+        },
+        {
+          "id": "T4R-034",
+          "question": "What does \u2018LDA Unavailable\u2019 mean?",
+          "ground_truth": 252,
+          "predicted": 251,
+          "correct": false,
+          "latency": 5.111421823501587
+        },
+        {
+          "id": "T4R-035",
+          "question": "How to correct when \u2018Front Camera Unavailable\u2019 is shown?",
+          "ground_truth": 237,
+          "predicted": 256,
+          "correct": false,
+          "latency": 5.8707756996154785
+        },
+        {
+          "id": "T4R-036",
+          "question": "When should new tire pressure transmitter IDs be registered?",
+          "ground_truth": 431,
+          "predicted": 437,
+          "correct": false,
+          "latency": 5.605111122131348
+        },
+        {
+          "id": "T4R-037",
+          "question": "What are the risks of using old brake fluid?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.6880998611450195
+        },
+        {
+          "id": "T4R-038",
+          "question": "Why must radiator and condenser not be touched when hot?",
+          "ground_truth": 420,
+          "predicted": 411,
+          "correct": false,
+          "latency": 4.89018440246582
+        },
+        {
+          "id": "T4R-039",
+          "question": "What causes the \u2018Brake Override System\u2019 light to flash?",
+          "ground_truth": 481,
+          "predicted": 480,
+          "correct": false,
+          "latency": 5.377490997314453
+        },
+        {
+          "id": "T4R-040",
+          "question": "How should tires with \u2018TWI\u2019 markings be interpreted?",
+          "ground_truth": 428,
+          "predicted": 486,
+          "correct": false,
+          "latency": 5.991029977798462
+        },
+        {
+          "id": "T4R-041",
+          "question": "How can the event data help improve safety?",
+          "ground_truth": 11,
+          "predicted": 10,
+          "correct": false,
+          "latency": 5.371882438659668
+        },
+        {
+          "id": "T4R-042",
+          "question": "What should you do before adding brake fluid?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 4.926249027252197
+        },
+        {
+          "id": "T4R-043",
+          "question": "How do you identify if the master warning system is active?",
+          "ground_truth": 488,
+          "predicted": 488,
+          "correct": true,
+          "latency": 5.190425872802734
+        },
+        {
+          "id": "T4R-044",
+          "question": "What should you check if your windshield wipers stop spraying?",
+          "ground_truth": 426,
+          "predicted": 225,
+          "correct": false,
+          "latency": 5.4850358963012695
+        },
+        {
+          "id": "T4R-045",
+          "question": "How does the seat belt pretensioner help in a crash?",
+          "ground_truth": 12,
+          "predicted": 33,
+          "correct": false,
+          "latency": 5.734129428863525
+        },
+        {
+          "id": "T4R-046",
+          "question": "When the master light flashes with a buzzer, what is implied?",
+          "ground_truth": 490,
+          "predicted": 481,
+          "correct": false,
+          "latency": 5.673790454864502
+        },
+        {
+          "id": "T4R-047",
+          "question": "How can incorrect tire rotation affect the vehicle?",
+          "ground_truth": 429,
+          "predicted": 428,
+          "correct": false,
+          "latency": 5.417689323425293
+        },
+        {
+          "id": "T4R-048",
+          "question": "What does the \u2018Front Camera Unavailable\u2019 message suggest?",
+          "ground_truth": 237,
+          "predicted": 491,
+          "correct": false,
+          "latency": 6.022000074386597
+        },
+        {
+          "id": "T4R-049",
+          "question": "What happens if the ABS and Brake warning lights turn on together?",
+          "ground_truth": 478,
+          "predicted": 477,
+          "correct": false,
+          "latency": 6.063664436340332
+        },
+        {
+          "id": "T4R-050",
+          "question": "Why must washer fluid freezing point be considered?",
+          "ground_truth": 427,
+          "predicted": 426,
+          "correct": false,
+          "latency": 5.4910736083984375
+        }
+      ]
+    },
+    {
+      "strategy_name": "Mega Chunks",
+      "chunk_size": 2400,
+      "chunk_overlap": 600,
+      "num_chunks": 618,
+      "accuracy": 30.0,
+      "correct": 15,
+      "total": 50,
+      "avg_latency": 5.013924298286438,
+      "predictions": [
+        {
+          "id": "T4R-001",
+          "question": "What should you do if the \u2018Braking Power Low Stop in a Safe Place\u2019 message appears?",
+          "ground_truth": 490,
+          "predicted": 490,
+          "correct": true,
+          "latency": 5.226457834243774
+        },
+        {
+          "id": "T4R-002",
+          "question": "What does the PCS warning light indicate?",
+          "ground_truth": 481,
+          "predicted": 481,
+          "correct": true,
+          "latency": 5.1039652824401855
+        },
+        {
+          "id": "T4R-003",
+          "question": "When should you not add washer fluid?",
+          "ground_truth": 426,
+          "predicted": 426,
+          "correct": true,
+          "latency": 4.921265125274658
+        },
+        {
+          "id": "T4R-004",
+          "question": "How should you handle the SRS airbag system when scrapping the vehicle?",
+          "ground_truth": 12,
+          "predicted": 43,
+          "correct": false,
+          "latency": 4.888108491897583
+        },
+        {
+          "id": "T4R-005",
+          "question": "What does the tire pressure warning light mean?",
+          "ground_truth": 481,
+          "predicted": 484,
+          "correct": false,
+          "latency": 5.006596803665161
+        },
+        {
+          "id": "T4R-006",
+          "question": "What precautions apply when handling brake fluid?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.248545169830322
+        },
+        {
+          "id": "T4R-007",
+          "question": "What does the KDSS warning light mean?",
+          "ground_truth": 480,
+          "predicted": 84,
+          "correct": false,
+          "latency": 4.570021152496338
+        },
+        {
+          "id": "T4R-008",
+          "question": "How do you know if the parking brake is still engaged?",
+          "ground_truth": 481,
+          "predicted": 327,
+          "correct": false,
+          "latency": 4.984276533126831
+        },
+        {
+          "id": "T4R-009",
+          "question": "What should you do when the \u2018Engine Coolant Temp High\u2019 message appears?",
+          "ground_truth": 519,
+          "predicted": 490,
+          "correct": false,
+          "latency": 5.257220983505249
+        },
+        {
+          "id": "T4R-010",
+          "question": "How should you respond to the \u2018Oil Pressure Low\u2019 warning?",
+          "ground_truth": 490,
+          "predicted": 477,
+          "correct": false,
+          "latency": 5.0278284549713135
+        },
+        {
+          "id": "T4R-011",
+          "question": "What does the low fuel level warning mean?",
+          "ground_truth": 480,
+          "predicted": 480,
+          "correct": true,
+          "latency": 5.045109987258911
+        },
+        {
+          "id": "T4R-012",
+          "question": "What should you do if the Smart Key System Malfunction message appears?",
+          "ground_truth": 490,
+          "predicted": 490,
+          "correct": true,
+          "latency": 4.769630670547485
+        },
+        {
+          "id": "T4R-013",
+          "question": "What does the seat belt reminder buzzer mean?",
+          "ground_truth": 481,
+          "predicted": 480,
+          "correct": false,
+          "latency": 4.94621467590332
+        },
+        {
+          "id": "T4R-014",
+          "question": "What does the master warning light indicate?",
+          "ground_truth": 488,
+          "predicted": 488,
+          "correct": true,
+          "latency": 5.00679087638855
+        },
+        {
+          "id": "T4R-015",
+          "question": "How do you check if a door is fully closed?",
+          "ground_truth": 480,
+          "predicted": 107,
+          "correct": false,
+          "latency": 4.977036476135254
+        },
+        {
+          "id": "T4R-016",
+          "question": "What does the ABS warning light mean?",
+          "ground_truth": 478,
+          "predicted": 478,
+          "correct": true,
+          "latency": 4.848132610321045
+        },
+        {
+          "id": "T4R-017",
+          "question": "How often should tires be rotated?",
+          "ground_truth": 429,
+          "predicted": 428,
+          "correct": false,
+          "latency": 4.995731830596924
+        },
+        {
+          "id": "T4R-018",
+          "question": "How can you tell when tires need replacement?",
+          "ground_truth": 428,
+          "predicted": 433,
+          "correct": false,
+          "latency": 5.442240238189697
+        },
+        {
+          "id": "T4R-019",
+          "question": "When must the tire pressure warning system be initialized?",
+          "ground_truth": 431,
+          "predicted": 430,
+          "correct": false,
+          "latency": 5.208300828933716
+        },
+        {
+          "id": "T4R-020",
+          "question": "How should washer fluid be diluted?",
+          "ground_truth": 427,
+          "predicted": 426,
+          "correct": false,
+          "latency": 4.69865608215332
+        },
+        {
+          "id": "T4R-021",
+          "question": "What type of brake fluid should be used?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.303702116012573
+        },
+        {
+          "id": "T4R-022",
+          "question": "How do you refill brake fluid safely?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 4.839329481124878
+        },
+        {
+          "id": "T4R-023",
+          "question": "What should be checked when inspecting the radiator and condenser?",
+          "ground_truth": 419,
+          "predicted": 405,
+          "correct": false,
+          "latency": 5.176170110702515
+        },
+        {
+          "id": "T4R-024",
+          "question": "How should you check power steering fluid?",
+          "ground_truth": 421,
+          "predicted": 405,
+          "correct": false,
+          "latency": 4.864392518997192
+        },
+        {
+          "id": "T4R-025",
+          "question": "What happens if you use soapy water instead of washer fluid?",
+          "ground_truth": 426,
+          "predicted": 426,
+          "correct": true,
+          "latency": 4.763821840286255
+        },
+        {
+          "id": "T4R-026",
+          "question": "What does the Event Data Recorder (EDR) record?",
+          "ground_truth": 11,
+          "predicted": 585,
+          "correct": false,
+          "latency": 4.6739537715911865
+        },
+        {
+          "id": "T4R-027",
+          "question": "Who can access recorded EDR data?",
+          "ground_truth": 11,
+          "predicted": 10,
+          "correct": false,
+          "latency": 4.516369819641113
+        },
+        {
+          "id": "T4R-028",
+          "question": "What components may contain perchlorate material?",
+          "ground_truth": 12,
+          "predicted": 11,
+          "correct": false,
+          "latency": 5.309095144271851
+        },
+        {
+          "id": "T4R-029",
+          "question": "What should you avoid when washing the vehicle floor?",
+          "ground_truth": 403,
+          "predicted": 396,
+          "correct": false,
+          "latency": 4.651502370834351
+        },
+        {
+          "id": "T4R-030",
+          "question": "What does the Tire Pressure Monitoring System (TPMS) do?",
+          "ground_truth": 430,
+          "predicted": 487,
+          "correct": false,
+          "latency": 4.9768218994140625
+        },
+        {
+          "id": "T4R-031",
+          "question": "What\u2019s the correct order for tire rotation on non-P245/60R20 tires?",
+          "ground_truth": 429,
+          "predicted": 428,
+          "correct": false,
+          "latency": 4.9931640625
+        },
+        {
+          "id": "T4R-032",
+          "question": "How can uneven tire wear affect performance?",
+          "ground_truth": 428,
+          "predicted": 427,
+          "correct": false,
+          "latency": 5.044868469238281
+        },
+        {
+          "id": "T4R-033",
+          "question": "What should be done if ABS warning stays on after startup?",
+          "ground_truth": 478,
+          "predicted": 490,
+          "correct": false,
+          "latency": 5.359723806381226
+        },
+        {
+          "id": "T4R-034",
+          "question": "What does \u2018LDA Unavailable\u2019 mean?",
+          "ground_truth": 252,
+          "predicted": 256,
+          "correct": false,
+          "latency": 4.870565891265869
+        },
+        {
+          "id": "T4R-035",
+          "question": "How to correct when \u2018Front Camera Unavailable\u2019 is shown?",
+          "ground_truth": 237,
+          "predicted": 256,
+          "correct": false,
+          "latency": 4.996107339859009
+        },
+        {
+          "id": "T4R-036",
+          "question": "When should new tire pressure transmitter IDs be registered?",
+          "ground_truth": 431,
+          "predicted": 430,
+          "correct": false,
+          "latency": 5.004485130310059
+        },
+        {
+          "id": "T4R-037",
+          "question": "What are the risks of using old brake fluid?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.071664810180664
+        },
+        {
+          "id": "T4R-038",
+          "question": "Why must radiator and condenser not be touched when hot?",
+          "ground_truth": 420,
+          "predicted": 411,
+          "correct": false,
+          "latency": 5.344442367553711
+        },
+        {
+          "id": "T4R-039",
+          "question": "What causes the \u2018Brake Override System\u2019 light to flash?",
+          "ground_truth": 481,
+          "predicted": 219,
+          "correct": false,
+          "latency": 4.913990020751953
+        },
+        {
+          "id": "T4R-040",
+          "question": "How should tires with \u2018TWI\u2019 markings be interpreted?",
+          "ground_truth": 428,
+          "predicted": 427,
+          "correct": false,
+          "latency": 4.999107837677002
+        },
+        {
+          "id": "T4R-041",
+          "question": "How can the event data help improve safety?",
+          "ground_truth": 11,
+          "predicted": 10,
+          "correct": false,
+          "latency": 5.067272901535034
+        },
+        {
+          "id": "T4R-042",
+          "question": "What should you do before adding brake fluid?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.097162961959839
+        },
+        {
+          "id": "T4R-043",
+          "question": "How do you identify if the master warning system is active?",
+          "ground_truth": 488,
+          "predicted": 488,
+          "correct": true,
+          "latency": 4.844658374786377
+        },
+        {
+          "id": "T4R-044",
+          "question": "What should you check if your windshield wipers stop spraying?",
+          "ground_truth": 426,
+          "predicted": 225,
+          "correct": false,
+          "latency": 5.138123989105225
+        },
+        {
+          "id": "T4R-045",
+          "question": "How does the seat belt pretensioner help in a crash?",
+          "ground_truth": 12,
+          "predicted": 33,
+          "correct": false,
+          "latency": 5.5772621631622314
+        },
+        {
+          "id": "T4R-046",
+          "question": "When the master light flashes with a buzzer, what is implied?",
+          "ground_truth": 490,
+          "predicted": 481,
+          "correct": false,
+          "latency": 5.068247318267822
+        },
+        {
+          "id": "T4R-047",
+          "question": "How can incorrect tire rotation affect the vehicle?",
+          "ground_truth": 429,
+          "predicted": 428,
+          "correct": false,
+          "latency": 5.165072441101074
+        },
+        {
+          "id": "T4R-048",
+          "question": "What does the \u2018Front Camera Unavailable\u2019 message suggest?",
+          "ground_truth": 237,
+          "predicted": 237,
+          "correct": true,
+          "latency": 4.931724309921265
+        },
+        {
+          "id": "T4R-049",
+          "question": "What happens if the ABS and Brake warning lights turn on together?",
+          "ground_truth": 478,
+          "predicted": 477,
+          "correct": false,
+          "latency": 5.300914764404297
+        },
+        {
+          "id": "T4R-050",
+          "question": "Why must washer fluid freezing point be considered?",
+          "ground_truth": 427,
+          "predicted": 426,
+          "correct": false,
+          "latency": 4.660366773605347
+        }
+      ]
+    },
+    {
+      "strategy_name": "Ultra Chunks",
+      "chunk_size": 3000,
+      "chunk_overlap": 750,
+      "num_chunks": 608,
+      "accuracy": 30.0,
+      "correct": 15,
+      "total": 50,
+      "avg_latency": 5.159324760437012,
+      "predictions": [
+        {
+          "id": "T4R-001",
+          "question": "What should you do if the \u2018Braking Power Low Stop in a Safe Place\u2019 message appears?",
+          "ground_truth": 490,
+          "predicted": 490,
+          "correct": true,
+          "latency": 4.940984487533569
+        },
+        {
+          "id": "T4R-002",
+          "question": "What does the PCS warning light indicate?",
+          "ground_truth": 481,
+          "predicted": 481,
+          "correct": true,
+          "latency": 5.2423255443573
+        },
+        {
+          "id": "T4R-003",
+          "question": "When should you not add washer fluid?",
+          "ground_truth": 426,
+          "predicted": 426,
+          "correct": true,
+          "latency": 5.277133941650391
+        },
+        {
+          "id": "T4R-004",
+          "question": "How should you handle the SRS airbag system when scrapping the vehicle?",
+          "ground_truth": 12,
+          "predicted": 43,
+          "correct": false,
+          "latency": 5.159387588500977
+        },
+        {
+          "id": "T4R-005",
+          "question": "What does the tire pressure warning light mean?",
+          "ground_truth": 481,
+          "predicted": 484,
+          "correct": false,
+          "latency": 5.265917539596558
+        },
+        {
+          "id": "T4R-006",
+          "question": "What precautions apply when handling brake fluid?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.1743950843811035
+        },
+        {
+          "id": "T4R-007",
+          "question": "What does the KDSS warning light mean?",
+          "ground_truth": 480,
+          "predicted": 84,
+          "correct": false,
+          "latency": 4.711237192153931
+        },
+        {
+          "id": "T4R-008",
+          "question": "How do you know if the parking brake is still engaged?",
+          "ground_truth": 481,
+          "predicted": 327,
+          "correct": false,
+          "latency": 5.207552194595337
+        },
+        {
+          "id": "T4R-009",
+          "question": "What should you do when the \u2018Engine Coolant Temp High\u2019 message appears?",
+          "ground_truth": 519,
+          "predicted": 490,
+          "correct": false,
+          "latency": 4.815349340438843
+        },
+        {
+          "id": "T4R-010",
+          "question": "How should you respond to the \u2018Oil Pressure Low\u2019 warning?",
+          "ground_truth": 490,
+          "predicted": 477,
+          "correct": false,
+          "latency": 5.122975826263428
+        },
+        {
+          "id": "T4R-011",
+          "question": "What does the low fuel level warning mean?",
+          "ground_truth": 480,
+          "predicted": 480,
+          "correct": true,
+          "latency": 5.271016597747803
+        },
+        {
+          "id": "T4R-012",
+          "question": "What should you do if the Smart Key System Malfunction message appears?",
+          "ground_truth": 490,
+          "predicted": 490,
+          "correct": true,
+          "latency": 4.825464725494385
+        },
+        {
+          "id": "T4R-013",
+          "question": "What does the seat belt reminder buzzer mean?",
+          "ground_truth": 481,
+          "predicted": 480,
+          "correct": false,
+          "latency": 5.044813871383667
+        },
+        {
+          "id": "T4R-014",
+          "question": "What does the master warning light indicate?",
+          "ground_truth": 488,
+          "predicted": 488,
+          "correct": true,
+          "latency": 5.342185974121094
+        },
+        {
+          "id": "T4R-015",
+          "question": "How do you check if a door is fully closed?",
+          "ground_truth": 480,
+          "predicted": 107,
+          "correct": false,
+          "latency": 5.6177051067352295
+        },
+        {
+          "id": "T4R-016",
+          "question": "What does the ABS warning light mean?",
+          "ground_truth": 478,
+          "predicted": 478,
+          "correct": true,
+          "latency": 5.401551246643066
+        },
+        {
+          "id": "T4R-017",
+          "question": "How often should tires be rotated?",
+          "ground_truth": 429,
+          "predicted": 428,
+          "correct": false,
+          "latency": 5.1410815715789795
+        },
+        {
+          "id": "T4R-018",
+          "question": "How can you tell when tires need replacement?",
+          "ground_truth": 428,
+          "predicted": 433,
+          "correct": false,
+          "latency": 5.5314671993255615
+        },
+        {
+          "id": "T4R-019",
+          "question": "When must the tire pressure warning system be initialized?",
+          "ground_truth": 431,
+          "predicted": 430,
+          "correct": false,
+          "latency": 5.930294990539551
+        },
+        {
+          "id": "T4R-020",
+          "question": "How should washer fluid be diluted?",
+          "ground_truth": 427,
+          "predicted": 426,
+          "correct": false,
+          "latency": 4.710148811340332
+        },
+        {
+          "id": "T4R-021",
+          "question": "What type of brake fluid should be used?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.572512149810791
+        },
+        {
+          "id": "T4R-022",
+          "question": "How do you refill brake fluid safely?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.105325698852539
+        },
+        {
+          "id": "T4R-023",
+          "question": "What should be checked when inspecting the radiator and condenser?",
+          "ground_truth": 419,
+          "predicted": 405,
+          "correct": false,
+          "latency": 5.268866777420044
+        },
+        {
+          "id": "T4R-024",
+          "question": "How should you check power steering fluid?",
+          "ground_truth": 421,
+          "predicted": 405,
+          "correct": false,
+          "latency": 5.0296385288238525
+        },
+        {
+          "id": "T4R-025",
+          "question": "What happens if you use soapy water instead of washer fluid?",
+          "ground_truth": 426,
+          "predicted": 426,
+          "correct": true,
+          "latency": 4.728200912475586
+        },
+        {
+          "id": "T4R-026",
+          "question": "What does the Event Data Recorder (EDR) record?",
+          "ground_truth": 11,
+          "predicted": 10,
+          "correct": false,
+          "latency": 5.000606060028076
+        },
+        {
+          "id": "T4R-027",
+          "question": "Who can access recorded EDR data?",
+          "ground_truth": 11,
+          "predicted": 10,
+          "correct": false,
+          "latency": 4.706105709075928
+        },
+        {
+          "id": "T4R-028",
+          "question": "What components may contain perchlorate material?",
+          "ground_truth": 12,
+          "predicted": 11,
+          "correct": false,
+          "latency": 5.251826763153076
+        },
+        {
+          "id": "T4R-029",
+          "question": "What should you avoid when washing the vehicle floor?",
+          "ground_truth": 403,
+          "predicted": 396,
+          "correct": false,
+          "latency": 5.187727689743042
+        },
+        {
+          "id": "T4R-030",
+          "question": "What does the Tire Pressure Monitoring System (TPMS) do?",
+          "ground_truth": 430,
+          "predicted": 487,
+          "correct": false,
+          "latency": 4.814090728759766
+        },
+        {
+          "id": "T4R-031",
+          "question": "What\u2019s the correct order for tire rotation on non-P245/60R20 tires?",
+          "ground_truth": 429,
+          "predicted": 428,
+          "correct": false,
+          "latency": 5.269829511642456
+        },
+        {
+          "id": "T4R-032",
+          "question": "How can uneven tire wear affect performance?",
+          "ground_truth": 428,
+          "predicted": 427,
+          "correct": false,
+          "latency": 5.056256532669067
+        },
+        {
+          "id": "T4R-033",
+          "question": "What should be done if ABS warning stays on after startup?",
+          "ground_truth": 478,
+          "predicted": 490,
+          "correct": false,
+          "latency": 4.692468643188477
+        },
+        {
+          "id": "T4R-034",
+          "question": "What does \u2018LDA Unavailable\u2019 mean?",
+          "ground_truth": 252,
+          "predicted": 256,
+          "correct": false,
+          "latency": 4.949365139007568
+        },
+        {
+          "id": "T4R-035",
+          "question": "How to correct when \u2018Front Camera Unavailable\u2019 is shown?",
+          "ground_truth": 237,
+          "predicted": 256,
+          "correct": false,
+          "latency": 5.04341983795166
+        },
+        {
+          "id": "T4R-036",
+          "question": "When should new tire pressure transmitter IDs be registered?",
+          "ground_truth": 431,
+          "predicted": 430,
+          "correct": false,
+          "latency": 5.059476613998413
+        },
+        {
+          "id": "T4R-037",
+          "question": "What are the risks of using old brake fluid?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.394769191741943
+        },
+        {
+          "id": "T4R-038",
+          "question": "Why must radiator and condenser not be touched when hot?",
+          "ground_truth": 420,
+          "predicted": 411,
+          "correct": false,
+          "latency": 5.214212656021118
+        },
+        {
+          "id": "T4R-039",
+          "question": "What causes the \u2018Brake Override System\u2019 light to flash?",
+          "ground_truth": 481,
+          "predicted": 480,
+          "correct": false,
+          "latency": 5.626581430435181
+        },
+        {
+          "id": "T4R-040",
+          "question": "How should tires with \u2018TWI\u2019 markings be interpreted?",
+          "ground_truth": 428,
+          "predicted": 427,
+          "correct": false,
+          "latency": 5.102511644363403
+        },
+        {
+          "id": "T4R-041",
+          "question": "How can the event data help improve safety?",
+          "ground_truth": 11,
+          "predicted": 10,
+          "correct": false,
+          "latency": 5.784111261367798
+        },
+        {
+          "id": "T4R-042",
+          "question": "What should you do before adding brake fluid?",
+          "ground_truth": 420,
+          "predicted": 420,
+          "correct": true,
+          "latency": 5.873558044433594
+        },
+        {
+          "id": "T4R-043",
+          "question": "How do you identify if the master warning system is active?",
+          "ground_truth": 488,
+          "predicted": 488,
+          "correct": true,
+          "latency": 5.291012763977051
+        },
+        {
+          "id": "T4R-044",
+          "question": "What should you check if your windshield wipers stop spraying?",
+          "ground_truth": 426,
+          "predicted": 225,
+          "correct": false,
+          "latency": 4.98974871635437
+        },
+        {
+          "id": "T4R-045",
+          "question": "How does the seat belt pretensioner help in a crash?",
+          "ground_truth": 12,
+          "predicted": 33,
+          "correct": false,
+          "latency": 5.095681190490723
+        },
+        {
+          "id": "T4R-046",
+          "question": "When the master light flashes with a buzzer, what is implied?",
+          "ground_truth": 490,
+          "predicted": 481,
+          "correct": false,
+          "latency": 4.953797817230225
+        },
+        {
+          "id": "T4R-047",
+          "question": "How can incorrect tire rotation affect the vehicle?",
+          "ground_truth": 429,
+          "predicted": 428,
+          "correct": false,
+          "latency": 5.131917238235474
+        },
+        {
+          "id": "T4R-048",
+          "question": "What does the \u2018Front Camera Unavailable\u2019 message suggest?",
+          "ground_truth": 237,
+          "predicted": 237,
+          "correct": true,
+          "latency": 5.033348560333252
+        },
+        {
+          "id": "T4R-049",
+          "question": "What happens if the ABS and Brake warning lights turn on together?",
+          "ground_truth": 478,
+          "predicted": 477,
+          "correct": false,
+          "latency": 5.295838832855225
+        },
+        {
+          "id": "T4R-050",
+          "question": "Why must washer fluid freezing point be considered?",
+          "ground_truth": 427,
+          "predicted": 426,
+          "correct": false,
+          "latency": 4.710442543029785
+        }
+      ]
+    }
+  ]
+}

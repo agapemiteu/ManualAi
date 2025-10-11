@@ -1,0 +1,78 @@
+{
+  "timestamp": "2025-10-09 21:11:24",
+  "pdf_source": "C:\\Users\\USER\\car-manual-rag-chatbot\\data\\2023-Toyota-4runner-Manual.pdf",
+  "all_results": [
+    {
+      "strategy_name": "Very Small Chunks",
+      "chunk_size": 300,
+      "chunk_overlap": 50,
+      "num_chunks": 3045,
+      "chunking_time": 0.43836212158203125,
+      "correct_predictions": 2,
+      "total_questions": 50,
+      "accuracy": 4.0,
+      "avg_latency": 0.0651818037033081,
+      "total_eval_time": 3.2590901851654053
+    },
+    {
+      "strategy_name": "Small Chunks",
+      "chunk_size": 400,
+      "chunk_overlap": 80,
+      "num_chunks": 2304,
+      "chunking_time": 0.6428964138031006,
+      "correct_predictions": 4,
+      "total_questions": 50,
+      "accuracy": 8.0,
+      "avg_latency": 0.06774702072143554,
+      "total_eval_time": 3.3873510360717773
+    },
+    {
+      "strategy_name": "Medium Chunks (Baseline)",
+      "chunk_size": 800,
+      "chunk_overlap": 150,
+      "num_chunks": 1192,
+      "chunking_time": 0.3496265411376953,
+      "correct_predictions": 4,
+      "total_questions": 50,
+      "accuracy": 8.0,
+      "avg_latency": 0.03584867477416992,
+      "total_eval_time": 1.792433738708496
+    },
+    {
+      "strategy_name": "Large Chunks",
+      "chunk_size": 1200,
+      "chunk_overlap": 200,
+      "num_chunks": 880,
+      "chunking_time": 0.1802976131439209,
+      "correct_predictions": 1,
+      "total_questions": 50,
+      "accuracy": 2.0,
+      "avg_latency": 0.03219638347625733,
+      "total_eval_time": 1.6098191738128662
+    },
+    {
+      "strategy_name": "Very Large Chunks",
+      "chunk_size": 1600,
+      "chunk_overlap": 300,
+      "num_chunks": 739,
+      "chunking_time": 0.32552194595336914,
+      "correct_predictions": 3,
+      "total_questions": 50,
+      "accuracy": 6.0,
+      "avg_latency": 0.05002773761749268,
+      "total_eval_time": 2.501386880874634
+    }
+  ],
+  "best_strategy": {
+    "strategy_name": "Small Chunks",
+    "chunk_size": 400,
+    "chunk_overlap": 80,
+    "num_chunks": 2304,
+    "chunking_time": 0.6428964138031006,
+    "correct_predictions": 4,
+    "total_questions": 50,
+    "accuracy": 8.0,
+    "avg_latency": 0.06774702072143554,
+    "total_eval_time": 3.3873510360717773
+  }
+}

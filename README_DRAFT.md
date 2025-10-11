@@ -2,7 +2,7 @@
 
 > A production-ready RAG (Retrieval-Augmented Generation) system that achieves **64% accuracy within ±2 pages** on a 608-page Toyota 4Runner manual — an **800% improvement** over keyword search baseline.
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Coming_Soon-yellow)]()
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-HuggingFace-yellow)](https://huggingface.co/spaces/YOUR_USERNAME/ManualAi)
 [![Accuracy](https://img.shields.io/badge/Accuracy-64%25_(±2_pages)-success)]()
 [![Python](https://img.shields.io/badge/Python-3.13-blue)]()
 [![License](https://img.shields.io/badge/License-MIT-green)]()
@@ -216,7 +216,7 @@ VOTING_EXPONENT = 3.0  # aggressive voting
 ### Installation
 
 ```bash
-git clone https://github.com/agapemiteu/ManualAi.git
+git clone https://github.com/YOUR_USERNAME/ManualAi.git
 cd ManualAi
 
 # Install dependencies
@@ -295,10 +295,10 @@ ManualAi/
 
 ## 👤 Author
 
-**agapemiteu**
-- GitHub: [github.com/agapemiteu](https://github.com/agapemiteu)
-- Repository: [ManualAi](https://github.com/agapemiteu/ManualAi)
-- Email: [Add your email here]
+**Your Name**
+- Portfolio: [your-portfolio.com](https://your-portfolio.com)
+- LinkedIn: [linkedin.com/in/yourname](https://linkedin.com/in/yourname)
+- Email: your.email@example.com
 
 ---
 
