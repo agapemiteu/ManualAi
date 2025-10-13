@@ -44,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </header>
           <main className="flex-1">{children}</main>
           <footer className="border-t border-slate-800 bg-slate-950/70 py-4 text-center text-xs text-slate-500">
-            <p>Powered by AI • <span className="text-sky-400">ManualAi</span> © 2025 • Max upload: 5MB (Free Tier)</p>
+            <p>Powered by AI • <span className="text-sky-400">ManualAi</span> © 2025 • Max upload: 20MB</p>
           </footer>
         </div>
       </body>

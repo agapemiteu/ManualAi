@@ -145,7 +145,7 @@ If upgrading to paid HuggingFace Spaces:
 **Recommended**: Digital PDFs only
 - Modern car manuals (2010+)
 - PDFs with selectable/copyable text
-- File size: <2MB recommended, 5MB max
+- File size: <10MB recommended, 20MB max
 
 **Not Recommended**: 
 - Scanned documents

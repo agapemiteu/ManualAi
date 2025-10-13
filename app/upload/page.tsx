@@ -16,8 +16,8 @@ import {
 import clsx from "clsx";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://agapemiteu-manualai.hf.space";
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit for free tier
-const RECOMMENDED_FILE_SIZE = 2 * 1024 * 1024; // 2MB recommended
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB limit
+const RECOMMENDED_FILE_SIZE = 10 * 1024 * 1024; // 10MB recommended
 const ACCEPTED_TYPES = ["application/pdf", "text/html", "text/plain"];
 type PdfAnalysisResult = {
   isImageHeavy: boolean;
@@ -184,13 +184,13 @@ const UploadPage: React.FC = () => {
     }
 
     if (selectedFile.size > MAX_FILE_SIZE) {
-      setMessage(`File is too large. Maximum allowed size is ${formatBytes(MAX_FILE_SIZE)} for free tier. For best results, use files under ${formatBytes(RECOMMENDED_FILE_SIZE)}.`);
+      setMessage(`File is too large. Maximum allowed size is ${formatBytes(MAX_FILE_SIZE)}. For best results, use files under ${formatBytes(RECOMMENDED_FILE_SIZE)}.`);
       return;
     }
     
     // Warning for files that might be slow
     if (selectedFile.size > RECOMMENDED_FILE_SIZE) {
-      setMessage(`⚠️ Large file detected (${formatBytes(selectedFile.size)}). Processing may take several minutes or timeout on free tier. Consider using a smaller manual for testing.`);
+      setMessage(`⚠️ Large file detected (${formatBytes(selectedFile.size)}). Processing may take several minutes. Please be patient while we process your manual.`);
     }
 
     setFile(selectedFile);
@@ -535,20 +535,20 @@ const UploadPage: React.FC = () => {
             <div>
               <h1 className="text-2xl font-semibold text-white">Upload Manual</h1>
               <p className="text-sm text-slate-400">
-                Upload PDF, HTML, or TXT manuals up to 5MB. Smaller files work best on free tier.
+                Upload PDF, HTML, or TXT manuals up to 20MB. Full car manuals supported!
               </p>
             </div>
           </div>
-          <div className="mt-5 flex items-start gap-2 rounded-lg border border-yellow-800/50 bg-yellow-900/20 p-3 text-sm text-yellow-200">
-            <AlertCircle className="mt-0.5 h-4 w-4 text-yellow-400" />
+          <div className="mt-5 flex items-start gap-2 rounded-lg border border-sky-800/50 bg-sky-900/20 p-3 text-sm text-sky-200">
+            <AlertCircle className="mt-0.5 h-4 w-4 text-sky-400" />
             <div>
-              <p className="font-medium">Free Tier Limitations</p>
-              <p className="mt-1 text-yellow-300/90">
-                <strong>Recommended:</strong> Files under 2MB (20-50 pages) process quickly.
+              <p className="font-medium">File Size Guidelines</p>
+              <p className="mt-1 text-sky-300/90">
+                <strong>Recommended:</strong> Files under 10MB process in 1-3 minutes.
                 <br />
-                <strong>Maximum:</strong> 5MB limit. Larger files may timeout during processing.
+                <strong>Maximum:</strong> 20MB limit. Large files (10-20MB) may take 3-5 minutes.
                 <br />
-                <strong>Tip:</strong> Extract specific sections from large manuals for best results.
+                <strong>Tip:</strong> Full car manuals (600+ pages) now supported!
               </p>
             </div>
           </div>

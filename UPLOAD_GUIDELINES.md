@@ -1,12 +1,12 @@
-# Upload Guidelines for Free Tier
+# Upload Guidelines
 
 ## File Size Limits
 
 | Size | Status | Processing Time | Recommendation |
 |------|--------|----------------|----------------|
-| **< 2MB** | ✅ Ideal | 30-60 seconds | **Recommended** - Fast and reliable |
-| **2-5MB** | ⚠️ Warning | 2-5 minutes | May work, but could timeout |
-| **> 5MB** | ❌ Blocked | N/A | Rejected - Too large for free tier |
+| **< 10MB** | ✅ Ideal | 1-3 minutes | **Recommended** - Fast and reliable |
+| **10-20MB** | ⚠️ Warning | 3-5 minutes | May take longer but should work |
+| **> 20MB** | ❌ Blocked | N/A | Rejected - Too large for current deployment |
 
 ## How to Reduce PDF Size
 
@@ -37,13 +37,14 @@ If you have a large manual (e.g., 600 pages), extract only relevant sections:
 
 ## Example: Toyota 4Runner Manual
 
-The full 2023 Toyota 4Runner manual is **12.4MB (608 pages)** - too large for free tier.
+The full 2023 Toyota 4Runner manual is **12.4MB (608 pages)** - works great!
 
-**Recommended extraction strategy:**
-- Safety & Warnings: Pages 1-50 (~500KB)
-- Maintenance Schedule: Pages 540-560 (~200KB)  
-- Troubleshooting: Pages 485-515 (~300KB)
-- Total: ~1MB - perfect for testing!
+**Upload options:**
+- **Full manual**: Upload all 608 pages (~12MB) - now supported!
+- **Extract sections**: For faster processing, extract key sections
+  - Safety & Warnings: Pages 1-50 (~500KB)
+  - Maintenance Schedule: Pages 540-560 (~200KB)  
+  - Troubleshooting: Pages 485-515 (~300KB)
 
 ## What Works Best
 
@@ -85,30 +86,28 @@ Local setup has **NO size limits** and processes files much faster!
 
 ## Why These Limits?
 
-The free tier deployment on HuggingFace has:
-- ⏱️ **Limited CPU time** for processing
-- 💾 **Limited memory** for embeddings
-- ⌛ **Request timeouts** (5 minutes max)
+The deployment has:
+- ⏱️ **Processing capacity** optimized for up to 20MB files
+- 💾 **Memory allocation** sufficient for most manuals
+- ⌛ **Request timeouts** (5 minutes for upload, background processing continues)
 
-Large manuals require:
-- Text extraction (OCR for images)
-- Embedding generation (all pages)
-- Vector store building
+Large manuals (10-20MB) will:
+- Take 3-5 minutes to process
+- Work reliably in the background
+- Be ready for queries once processing completes
 
-This can easily exceed free tier capabilities.
+## For Even Larger Files
 
-## Pro Tier Alternative
-
-For production use with large manuals:
-- **HuggingFace Pro**: $9/month - More resources, longer timeouts
+For manuals over 20MB:
 - **Local deployment**: No limits, fastest processing
-- **Dedicated server**: Full control
+- **Extract sections**: Focus on relevant chapters
+- **Compress PDF**: Use online tools to reduce size
 
 ## Summary
 
-🎯 **Sweet Spot**: 20-50 page PDFs (1-2MB)  
-✅ **Works Great**: Fast processing, reliable results  
-🚀 **Best Demo**: Shows off the system without timeouts  
+🎯 **Sweet Spot**: Under 10MB - Fast and reliable  
+✅ **Works Great**: Up to 20MB - More processing time but still works  
+🚀 **Best Demo**: Full car manuals (600+ pages) now supported!  
 
 ---
 
