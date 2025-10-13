@@ -18,6 +18,8 @@ data/uploads/
 data/manual_store/
 
 # Sample/test files (keep data folder but exclude large files)
+# Allow the Toyota manual for demo purposes
+!data/2023-Toyota-4runner-Manual.pdf
 data/*.pdf
 data/*.html
 data/*.docx
@@ -25,6 +27,11 @@ data/*.docx
 # Logs and tmp
 *.log
 tmp/
+
+# Cleanup files
+CLEANUP_PLAN.md
+*_BACKUP.md
+*_old*.md
 
 # OS/filesystem cruft
 .DS_Store

@@ -1,0 +1,743 @@
+{
+  "exact_match": 21,
+  "within_2_pages": 17,
+  "within_5_pages": 0,
+  "within_10_pages": 1,
+  "total": 50,
+  "details": [
+    {
+      "id": "T4R-001",
+      "question": "What should you do if the \u2018Braking Power Low Stop in a Safe Place\u2019 message appears?",
+      "ground_truth": 490,
+      "retrieved": [
+        268,
+        378,
+        467
+      ],
+      "answer_preview": "If the 'Braking Power Low Stop in a Safe Place' message appears, you should stop the vehicle in a safe place by the road.",
+      "exact": false,
+      "within_2": false,
+      "within_5": false,
+      "within_10": false
+    },
+    {
+      "id": "T4R-002",
+      "question": "What does the PCS warning light indicate?",
+      "ground_truth": 481,
+      "retrieved": [
+        479,
+        481,
+        489
+      ],
+      "answer_preview": "The PCS warning light indicates that the PCS (Pre-Collision System) or VSC (Vehicle Stability Control) system is disabled.",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-003",
+      "question": "When should you not add washer fluid?",
+      "ground_truth": 426,
+      "retrieved": [
+        225,
+        425,
+        426
+      ],
+      "answer_preview": "According to the manual, you should not add washer fluid when the engine is hot or running.",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-004",
+      "question": "How should you handle the SRS airbag system when scrapping the vehicle?",
+      "ground_truth": 12,
+      "retrieved": [
+        43,
+        44
+      ],
+      "answer_preview": "According to the manual, when scrapping the vehicle, you should consult your Toyota dealer before disposing of it. This is to prevent any potential malfunctions or accidental deployment of the SRS air",
+      "exact": false,
+      "within_2": false,
+      "within_5": false,
+      "within_10": false
+    },
+    {
+      "id": "T4R-005",
+      "question": "What does the tire pressure warning light mean?",
+      "ground_truth": 481,
+      "retrieved": [
+        429,
+        481,
+        484
+      ],
+      "answer_preview": "The tire pressure warning light may come on due to two main reasons:\n\n1. Low tire inflation pressure caused by natural causes such as natural air leaks and tire inflation pressure changes due to tempe",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-006",
+      "question": "What precautions apply when handling brake fluid?",
+      "ground_truth": 420,
+      "retrieved": [
+        339,
+        409,
+        420
+      ],
+      "answer_preview": "When handling brake fluid, take the following precautions:\n\n1. Use only newly opened brake fluid to prevent excess moisture from causing a loss of braking efficiency.\n2. Take care when filling the res",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-007",
+      "question": "What does the KDSS warning light mean?",
+      "ground_truth": 480,
+      "retrieved": [
+        479,
+        481
+      ],
+      "answer_preview": "The KDSS warning light indicates a malfunction in the KDSS (Kinetic Dynamic Suspension System) system. You should have the vehicle inspected by your Toyota dealer immediately.",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-008",
+      "question": "How do you know if the parking brake is still engaged?",
+      "ground_truth": 481,
+      "retrieved": [
+        173,
+        211,
+        328
+      ],
+      "answer_preview": "To check if the parking brake is still engaged, you can follow the instructions in the manual. According to the manual, \"Depressing the pedal again releases the parking brake.\" This means that if you ",
+      "exact": false,
+      "within_2": false,
+      "within_5": false,
+      "within_10": false
+    },
+    {
+      "id": "T4R-009",
+      "question": "What should you do when the \u2018Engine Coolant Temp High\u2019 message appears?",
+      "ground_truth": 519,
+      "retrieved": [
+        89,
+        192,
+        521
+      ],
+      "answer_preview": "When the 'Engine Coolant Temp High' message appears, you should immediately turn off the air conditioning (if in use), pull your vehicle off the road, and stop in a safe spot.",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-010",
+      "question": "How should you respond to the \u2018Oil Pressure Low\u2019 warning?",
+      "ground_truth": 490,
+      "retrieved": [
+        416,
+        429,
+        490
+      ],
+      "answer_preview": "According to the manual, if the 'Oil Pressure Low' warning is displayed, you should:\n\nImmediately stop the vehicle in a safe place and contact your Toyota dealer. Continuing to drive the vehicle may b",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-011",
+      "question": "What does the low fuel level warning mean?",
+      "ground_truth": 480,
+      "retrieved": [
+        84,
+        465,
+        480
+      ],
+      "answer_preview": "According to the manual, the low fuel level warning light indicates that the remaining fuel is approximately 3.5 gallons (13.1 L, 2.9 Imp. gal.) or less.",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-012",
+      "question": "What should you do if the Smart Key System Malfunction message appears?",
+      "ground_truth": 490,
+      "retrieved": [
+        116,
+        119,
+        585
+      ],
+      "answer_preview": "Unfortunately, the provided context does not contain information on what to do if the Smart Key System Malfunction message appears. However, it does mention a situation where the Smart Key System has ",
+      "exact": false,
+      "within_2": false,
+      "within_5": false,
+      "within_10": false
+    },
+    {
+      "id": "T4R-013",
+      "question": "What does the seat belt reminder buzzer mean?",
+      "ground_truth": 481,
+      "retrieved": [
+        482,
+        485
+      ],
+      "answer_preview": "The seat belt reminder buzzer sounds intermittently to alert the driver and front passenger that their seat belts are not fastened. This occurs after the vehicle reaches a certain speed, approximately",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-014",
+      "question": "What does the master warning light indicate?",
+      "ground_truth": 488,
+      "retrieved": [
+        481,
+        488,
+        490
+      ],
+      "answer_preview": "The master warning light indicates that a message is currently being displayed on the multi-information display. It may also come on or flash to alert the driver to a warning or malfunction.",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-015",
+      "question": "How do you check if a door is fully closed?",
+      "ground_truth": 480,
+      "retrieved": [
+        107,
+        118
+      ],
+      "answer_preview": "According to the manual, the buzzer will sound and the emergency flashers will flash to indicate that the doors have been locked/unlocked. Specifically, it will sound once when the doors are locked. T",
+      "exact": false,
+      "within_2": false,
+      "within_5": false,
+      "within_10": false
+    },
+    {
+      "id": "T4R-016",
+      "question": "What does the ABS warning light mean?",
+      "ground_truth": 478,
+      "retrieved": [
+        87,
+        478,
+        490
+      ],
+      "answer_preview": "According to the manual, the ABS warning light comes on when there is a malfunction in the ABS (Anti-lock Braking System). You should refer to page 478 for further information.",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-017",
+      "question": "How often should tires be rotated?",
+      "ground_truth": 429,
+      "retrieved": [
+        428,
+        436,
+        438
+      ],
+      "answer_preview": "According to the manual, Toyota recommends rotating tires at the same interval as tire inspection to equalize tire wear and extend tire life. However, the manual does not specify the exact interval fo",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-018",
+      "question": "How can you tell when tires need replacement?",
+      "ground_truth": 428,
+      "retrieved": [
+        427,
+        433,
+        441
+      ],
+      "answer_preview": "According to the manual, you can tell when tires need replacement by checking if the treadwear indicators are showing on the tires. These indicators are marked with a \"TWI\" or \"\u0394\" symbol, etc., molded",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-019",
+      "question": "When must the tire pressure warning system be initialized?",
+      "ground_truth": 431,
+      "retrieved": [
+        430,
+        436
+      ],
+      "answer_preview": "The tire pressure warning system must be initialized in the following situations:\n\n1. When the tire inflation pressure is changed (such as when the tire size is changed).\n2. When rotating the tires.\n3",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-020",
+      "question": "How should washer fluid be diluted?",
+      "ground_truth": 427,
+      "retrieved": [
+        400,
+        425,
+        426
+      ],
+      "answer_preview": "Unfortunately, the provided context does not contain information on how to dilute washer fluid. It only mentions that washer fluid should not be used undiluted with soapy water or engine antifreeze, a",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-021",
+      "question": "What type of brake fluid should be used?",
+      "ground_truth": 420,
+      "retrieved": [
+        419,
+        420,
+        531
+      ],
+      "answer_preview": "According to the manual, the recommended type of brake fluid is:\n\nFMVSS No.116 DOT 3 or SAE J1703 brake fluid.",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-022",
+      "question": "How do you refill brake fluid safely?",
+      "ground_truth": 420,
+      "retrieved": [
+        419,
+        420
+      ],
+      "answer_preview": "To refill brake fluid safely, follow these steps:\n\n1. Remove the reservoir cap by hand.\n2. Add brake fluid up to the \"MAX\" line.\n3. Be careful not to overfill, as this may cause the reservoir to overf",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-023",
+      "question": "What should be checked when inspecting the radiator and condenser?",
+      "ground_truth": 419,
+      "retrieved": [
+        519,
+        520
+      ],
+      "answer_preview": "When inspecting the radiator and condenser, check that the radiator cooling fan is operating and check for coolant leaks from the radiator or hoses.",
+      "exact": false,
+      "within_2": false,
+      "within_5": false,
+      "within_10": false
+    },
+    {
+      "id": "T4R-024",
+      "question": "How should you check power steering fluid?",
+      "ground_truth": 421,
+      "retrieved": [
+        358,
+        421,
+        422
+      ],
+      "answer_preview": "To check the power steering fluid, follow these steps:\n\n1. Remove the cap by turning it counterclockwise.\n2. Wipe the dipstick clean.\n3. Reinstall the cap and remove it again.\n4. Check the fluid level",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-025",
+      "question": "What happens if you use soapy water instead of washer fluid?",
+      "ground_truth": 426,
+      "retrieved": [
+        225,
+        396,
+        426
+      ],
+      "answer_preview": "According to the manual, using soapy water instead of washer fluid may cause two problems:\n\n1. Streaking on the vehicle's painted surfaces.\n2. Damaging the pump, which can lead to problems with the wa",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-026",
+      "question": "What does the Event Data Recorder (EDR) record?",
+      "ground_truth": 11,
+      "retrieved": [
+        10
+      ],
+      "answer_preview": "The Event Data Recorder (EDR) in this vehicle records data related to vehicle dynamics and safety systems, including:\n\n- How various systems in the vehicle were operating\n- Whether or not the driver a",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-027",
+      "question": "Who can access recorded EDR data?",
+      "ground_truth": 11,
+      "retrieved": [
+        10
+      ],
+      "answer_preview": "According to the manual, the following parties can access recorded EDR data:\n\n1. The vehicle manufacturer\n2. Law enforcement (if they have access to the vehicle or the EDR)\n3. Other parties with speci",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-028",
+      "question": "What components may contain perchlorate material?",
+      "ground_truth": 12,
+      "retrieved": [
+        401,
+        404,
+        410
+      ],
+      "answer_preview": "The manual does not mention components that may contain perchlorate material.",
+      "exact": false,
+      "within_2": false,
+      "within_5": false,
+      "within_10": false
+    },
+    {
+      "id": "T4R-029",
+      "question": "What should you avoid when washing the vehicle floor?",
+      "ground_truth": 403,
+      "retrieved": [
+        396,
+        397
+      ],
+      "answer_preview": "Based on the provided manual context, when washing the vehicle floor, you should avoid using high-pressure car washes, as water may enter the cabin. Additionally, when using a high-pressure car wash, ",
+      "exact": false,
+      "within_2": false,
+      "within_5": false,
+      "within_10": true
+    },
+    {
+      "id": "T4R-030",
+      "question": "What does the Tire Pressure Monitoring System (TPMS) do?",
+      "ground_truth": 430,
+      "retrieved": [
+        429,
+        430,
+        487
+      ],
+      "answer_preview": "The Tire Pressure Monitoring System (TPMS) detects low tire inflation pressure and warns the driver through a screen display and a warning light if the pressure drops below a predetermined level.",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-031",
+      "question": "What\u2019s the correct order for tire rotation on non-P245/60R20 tires?",
+      "ground_truth": 429,
+      "retrieved": [
+        428,
+        430,
+        438
+      ],
+      "answer_preview": "The manual does not specify the correct order for tire rotation on non-P245/60R20 tires. It only mentions the order for vehicles with P245/60R20 tires, which is \"Front Front\".",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-032",
+      "question": "How can uneven tire wear affect performance?",
+      "ground_truth": 428,
+      "retrieved": [
+        439,
+        486,
+        541
+      ],
+      "answer_preview": "According to the manual, uneven tire wear may affect the vehicle's handling and stopping ability.",
+      "exact": false,
+      "within_2": false,
+      "within_5": false,
+      "within_10": false
+    },
+    {
+      "id": "T4R-033",
+      "question": "What should be done if ABS warning stays on after startup?",
+      "ground_truth": 478,
+      "retrieved": [
+        87,
+        478,
+        490
+      ],
+      "answer_preview": "According to the manual, if the ABS warning light comes on, it indicates a malfunction in the ABS. The recommended action is to refer to page 478 for further information. However, since the question s",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-034",
+      "question": "What does \u2018LDA Unavailable\u2019 mean?",
+      "ground_truth": 252,
+      "retrieved": [
+        251,
+        256
+      ],
+      "answer_preview": "According to the manual, \"LDA Unavailable\" means that the LDA system is temporarily canceled due to a malfunction in a sensor other than the camera sensor.",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-035",
+      "question": "How to correct when \u2018Front Camera Unavailable\u2019 is shown?",
+      "ground_truth": 237,
+      "retrieved": [
+        237,
+        256,
+        490
+      ],
+      "answer_preview": "According to the manual, if \"Front Camera Unavailable\" is displayed, follow the instructions on page 237 and 488 of the owner's manual.",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-036",
+      "question": "When should new tire pressure transmitter IDs be registered?",
+      "ground_truth": 431,
+      "retrieved": [
+        430,
+        431,
+        432
+      ],
+      "answer_preview": "New tire pressure transmitter IDs should be registered when new tire pressure warning valve and transmitters are installed.",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-037",
+      "question": "What are the risks of using old brake fluid?",
+      "ground_truth": 420,
+      "retrieved": [
+        339,
+        419,
+        420
+      ],
+      "answer_preview": "According to the manual, the risk of using old brake fluid is that it can cause a \"dangerous loss of braking efficiency\" due to excess moisture absorbed from the air.",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-038",
+      "question": "Why must radiator and condenser not be touched when hot?",
+      "ground_truth": 420,
+      "retrieved": [
+        282,
+        419,
+        520
+      ],
+      "answer_preview": "According to the manual, the radiator and condenser should not be touched when hot because they may be hot and cause serious injuries, such as burns.",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-039",
+      "question": "What causes the \u2018Brake Override System\u2019 light to flash?",
+      "ground_truth": 481,
+      "retrieved": [
+        310,
+        314,
+        480
+      ],
+      "answer_preview": "The 'Brake Override System' light will flash if the system is operating. According to the manual, this is indicated by the statement: \"When a buzzer does not sound: Brake Override System is operating\"",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-040",
+      "question": "How should tires with \u2018TWI\u2019 markings be interpreted?",
+      "ground_truth": 428,
+      "retrieved": [
+        537,
+        541,
+        547
+      ],
+      "answer_preview": "The provided manual context does not mention 'TWI' markings. It does mention 'M+S' markings, which indicate that a tire is an all-season tire. However, there is no information about 'TWI' markings.",
+      "exact": false,
+      "within_2": false,
+      "within_5": false,
+      "within_10": false
+    },
+    {
+      "id": "T4R-041",
+      "question": "How can the event data help improve safety?",
+      "ground_truth": 11,
+      "retrieved": [
+        10
+      ],
+      "answer_preview": "According to the manual, the event data collected by the Event Data Recorder (EDR) can help provide a better understanding of the circumstances in which crashes and injuries occur. This information ca",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-042",
+      "question": "What should you do before adding brake fluid?",
+      "ground_truth": 420,
+      "retrieved": [
+        419,
+        420
+      ],
+      "answer_preview": "Before adding brake fluid, you should remove the reservoir cap by hand.",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-043",
+      "question": "How do you identify if the master warning system is active?",
+      "ground_truth": 488,
+      "retrieved": [
+        84,
+        481,
+        488
+      ],
+      "answer_preview": "According to the manual, the master warning light will come on or flash to indicate that a message is being displayed on the multi-information display.",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-044",
+      "question": "What should you check if your windshield wipers stop spraying?",
+      "ground_truth": 426,
+      "retrieved": [
+        225,
+        399,
+        407
+      ],
+      "answer_preview": "If your windshield wipers stop spraying, check that the washer nozzles are not blocked if there is washer fluid in the washer fluid reservoir.",
+      "exact": false,
+      "within_2": false,
+      "within_5": false,
+      "within_10": false
+    },
+    {
+      "id": "T4R-045",
+      "question": "How does the seat belt pretensioner help in a crash?",
+      "ground_truth": 12,
+      "retrieved": [
+        33,
+        35,
+        37
+      ],
+      "answer_preview": "According to the manual, the seat belt pretensioners help to quickly restrain the occupants by retracting the seat belts when the vehicle is subjected to certain types of severe frontal or side collis",
+      "exact": false,
+      "within_2": false,
+      "within_5": false,
+      "within_10": false
+    },
+    {
+      "id": "T4R-046",
+      "question": "When the master light flashes with a buzzer, what is implied?",
+      "ground_truth": 490,
+      "retrieved": [
+        480,
+        489,
+        580
+      ],
+      "answer_preview": "According to the manual, when a warning light flashes with a buzzer, it indicates a situation, such as when damage to the vehicle may occur.",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-047",
+      "question": "How can incorrect tire rotation affect the vehicle?",
+      "ground_truth": 429,
+      "retrieved": [
+        334,
+        428,
+        441
+      ],
+      "answer_preview": "The context does not mention the effects of incorrect tire rotation. However, it does mention the importance of tire rotation to \"equalize tire wear and extend tire life.\" This implies that incorrect ",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-048",
+      "question": "What does the \u2018Front Camera Unavailable\u2019 message suggest?",
+      "ground_truth": 237,
+      "retrieved": [
+        237,
+        256,
+        490
+      ],
+      "answer_preview": "According to the manual, if the \"Front Camera Unavailable See Owner's Manual\" message is displayed, it suggests that the front camera is obstructed, such as when the hood is open or a sticker is attac",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-049",
+      "question": "What happens if the ABS and Brake warning lights turn on together?",
+      "ground_truth": 478,
+      "retrieved": [
+        87,
+        478,
+        490
+      ],
+      "answer_preview": "Based on the provided manual context, it does not specifically mention what happens if the ABS and Brake warning lights turn on together. However, it does mention that the ABS warning light comes on w",
+      "exact": true,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    },
+    {
+      "id": "T4R-050",
+      "question": "Why must washer fluid freezing point be considered?",
+      "ground_truth": 427,
+      "retrieved": [
+        225,
+        425,
+        426
+      ],
+      "answer_preview": "According to the manual, the washer fluid freezing point must be considered because when it is cold, the fluid may freeze on the windshield and cause low visibility. This is stated in section 225 4-3.",
+      "exact": false,
+      "within_2": true,
+      "within_5": true,
+      "within_10": true
+    }
+  ]
+}
