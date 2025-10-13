@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Analysis & Insights - ManualAi Project | Agape Miteu</title>
+    <meta name="description" content="Personal reflections and insights from building a production RAG system">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.8;
+            color: #1e293b;
+            background: #f8fafc;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Navigation */
+        nav {
+            background: #2563eb;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        nav .container {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+        
+        nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        nav .logo {
+            font-size: 1.3rem;
+            margin-right: auto;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+        
+        /* Content Sections */
+        section {
+            background: white;
+            margin: 40px auto;
+            padding: 50px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            color: #2563eb;
+            font-size: 2rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #e2e8f0;
+        }
+        
+        h3 {
+            color: #1e293b;
+            font-size: 1.5rem;
+            margin-top: 40px;
+            margin-bottom: 15px;
+        }
+        
+        p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .highlight-box {
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+        
+        .highlight-box h4 {
+            color: #2563eb;
+            margin-bottom: 15px;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .stat-card {
+            background: #f8fafc;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2563eb;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+        
+        .image-container {
+            margin: 40px 0;
+            text-align: center;
+        }
+        
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .caption {
+            margin-top: 15px;
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .placeholder {
+            background: #fef3c7;
+            border: 2px dashed #f59e0b;
+            padding: 30px;
+            margin: 30px 0;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .placeholder h4 {
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+        
+        .placeholder p {
+            color: #78350f;
+            font-size: 0.95rem;
+        }
+        
+        ul, ol {
+            margin: 20px 0 20px 30px;
+        }
+        
+        li {
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+        }
+        
+        /* Footer */
+        footer {
+            background: #1e293b;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: 60px;
+        }
+        
+        footer a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.6rem; }
+            section { padding: 30px 20px; }
+            nav .container { flex-direction: column; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <span class="logo">📚 ManualAi</span>
+            <a href="index.html">Home</a>
+            <a href="analysis.html">My Analysis</a>
+            <a href="https://manual-ai-psi.vercel.app" target="_blank">Live Demo</a>
+            <a href="https://github.com/agapemiteu/ManualAi" target="_blank">GitHub</a>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <h1>My Personal Analysis & Insights</h1>
+            <p class="subtitle">Reflections from building a production RAG system</p>
+        </div>
+    </header>
+
+    <!-- Introduction -->
+    <div class="container">
+        <section>
+            <h2>🌟 Introduction</h2>
+            
+            <div class="placeholder">
+                <h4>✏️ YOUR INTRO GOES HERE</h4>
+                <p>Replace this with 2-3 paragraphs about why you started this project and what you hoped to learn</p>
+            </div>
+            
+            <!-- EXAMPLE - Replace with your story: -->
+            <!--
+            <p>
+                This project started from personal frustration. Last winter, I was sitting 
+                in my car at 2 AM when a warning light came on. I grabbed the 600-page owner's 
+                manual and spent 20 minutes trying to find what the symbol meant...
+            </p>
+            
+            <p>
+                As a [your background] student/developer, I saw this as an opportunity to 
+                apply [specific technologies] to solve a real problem. My goal was to build 
+                something that would actually help people...
+            </p>
+            -->
+        </section>
+
+        <!-- Key Stats -->
+        <section>
+            <h2>📊 By The Numbers</h2>
+            
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <span class="stat-number">76%</span>
+                    <span class="stat-label">Production Accuracy<br>(±2 pages)</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">608</span>
+                    <span class="stat-label">Pages Processed<br>(11.8MB manual)</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">50</span>
+                    <span class="stat-label">Ground Truth<br>Questions</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">65s</span>
+                    <span class="stat-label">Processing Time<br>(full manual)</span>
+                </div>
+            </div>
+            
+            <div class="placeholder">
+                <h4>✏️ EXPLAIN WHAT THESE NUMBERS MEAN TO YOU</h4>
+                <p>Add your interpretation of these results. What surprised you? What does 76% actually mean in practice?</p>
+            </div>
+        </section>
+
+        <!-- What I Learned -->
+        <section>
+            <h2>💡 What I Learned</h2>
+            
+            <h3>1. Simpler is Often Better</h3>
+            <div class="placeholder">
+                <h4>✏️ YOUR INSIGHTS HERE</h4>
+                <p>Write about discovering that the simpler approach (no OCR) beat the complex one. How did this change your thinking?</p>
+            </div>
+            
+            <!-- EXAMPLE - Replace with your experience:
+            <p>
+                I assumed that more features = better results. I spent days configuring OCR, 
+                debugging NLTK permissions, and fighting deployment issues. When I finally 
+                stripped it all away and tried PyMuPDF alone, accuracy JUMPED from 64% to 76%.
+            </p>
+            
+            <p>
+                This taught me that [your lesson here]...
+            </p>
+            -->
+            
+            <h3>2. Production is Different from Development</h3>
+            <div class="placeholder">
+                <h4>✏️ YOUR DEPLOYMENT STORY</h4>
+                <p>Share your experience deploying to 3 platforms. What broke? What worked? What surprised you?</p>
+            </div>
+            
+            <h3>3. [Your Third Key Learning]</h3>
+            <div class="placeholder">
+                <h4>✏️ ADD MORE LEARNINGS</h4>
+                <p>What else did you discover? About the tech? About yourself? About problem-solving?</p>
+            </div>
+        </section>
+
+        <!-- The Journey -->
+        <section>
+            <h2>🚀 The Journey: From Idea to Production</h2>
+            
+            <h3>Phase 1: The Starting Point</h3>
+            <div class="placeholder">
+                <h4>✏️ WHERE YOU BEGAN</h4>
+                <p>What was your initial approach? What did you think would work? What was your baseline?</p>
+            </div>
+            
+            <h3>Phase 2: Experimentation & Optimization</h3>
+            <div class="placeholder">
+                <h4>✏️ YOUR EXPERIMENTS</h4>
+                <p>What did you try? What worked? What failed? Share specific experiments and their results.</p>
+            </div>
+            
+            <!-- Optional: Add visualization -->
+            <!--
+            <div class="image-container">
+                <img src="../analysis/improvement_journey.png" alt="My improvement journey">
+                <p class="caption">How accuracy evolved through my experiments</p>
+            </div>
+            -->
+            
+            <h3>Phase 3: Production Deployment</h3>
+            <div class="placeholder">
+                <h4>✏️ DEPLOYMENT EXPERIENCE</h4>
+                <p>How did you deploy? Challenges? Solutions? What's it like managing 3 platforms?</p>
+            </div>
+        </section>
+
+        <!-- Biggest Challenges -->
+        <section>
+            <h2>🎯 Biggest Challenges</h2>
+            
+            <div class="highlight-box">
+                <h4>Challenge #1: [Your Hardest Problem]</h4>
+                <div class="placeholder">
+                    <p>✏️ Describe your biggest technical challenge. Be specific. What went wrong? How long did it take? How did you solve it?</p>
+                </div>
+            </div>
+            
+            <div class="highlight-box">
+                <h4>Challenge #2: [Another Major Issue]</h4>
+                <div class="placeholder">
+                    <p>✏️ What was your second biggest challenge? Maybe debugging? Performance? Deployment?</p>
+                </div>
+            </div>
+            
+            <div class="highlight-box">
+                <h4>Challenge #3: [Something Unexpected]</h4>
+                <div class="placeholder">
+                    <p>✏️ What surprised you? What problem did you NOT expect?</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Deep Dive -->
+        <section>
+            <h2>📈 Results Analysis</h2>
+            
+            <h3>Production vs Research: Why the Difference?</h3>
+            <div class="placeholder">
+                <h4>✏️ YOUR INTERPRETATION</h4>
+                <p>Production: 76% accuracy | Research: 64% accuracy - Why did simpler win? What does this tell you?</p>
+            </div>
+            
+            <h3>Category Performance Breakdown</h3>
+            <div class="placeholder">
+                <h4>✏️ EXPLAIN THE CATEGORIES</h4>
+                <p>System Knowledge: 88% | Maintenance: 78% | Safety: 75% - Why do you think each performed differently?</p>
+            </div>
+            
+            <!-- Optional: Add your analysis charts
+            <div class="image-container">
+                <img src="../analysis/performance_comparison.png" alt="Performance comparison">
+                <p class="caption">My analysis of what worked best</p>
+            </div>
+            -->
+            
+            <h3>What 76% Accuracy Actually Means</h3>
+            <div class="placeholder">
+                <h4>✏️ REAL-WORLD IMPLICATIONS</h4>
+                <p>Explain in plain English what this means for actual users. Is 76% good enough? For what use cases?</p>
+            </div>
+        </section>
+
+        <!-- Technical Decisions -->
+        <section>
+            <h2>🛠️ Key Technical Decisions</h2>
+            
+            <h3>Why I Chose These Technologies</h3>
+            <ul class="placeholder">
+                <li>✏️ <strong>Next.js for frontend:</strong> [Why did you choose this?]</li>
+                <li>✏️ <strong>FastAPI for backend:</strong> [Your reasoning?]</li>
+                <li>✏️ <strong>ChromaDB:</strong> [Why this vector database?]</li>
+                <li>✏️ <strong>Groq API:</strong> [Why not OpenAI or Anthropic?]</li>
+            </ul>
+            
+            <h3>Trade-offs I Made</h3>
+            <div class="placeholder">
+                <h4>✏️ YOUR TRADE-OFF ANALYSIS</h4>
+                <p>What did you sacrifice for what benefit? Speed vs accuracy? Cost vs performance? Complexity vs maintainability?</p>
+            </div>
+        </section>
+
+        <!-- Looking Forward -->
+        <section>
+            <h2>🔮 Future Improvements</h2>
+            
+            <h3>What I'd Build Next</h3>
+            <div class="placeholder">
+                <h4>✏️ YOUR VISION</h4>
+                <p>If you had more time/resources, what would you add? What would you improve? What experiments would you run?</p>
+            </div>
+            
+            <h3>What I'd Do Differently</h3>
+            <div class="placeholder">
+                <h4>✏️ LESSONS FOR NEXT TIME</h4>
+                <p>If you started over, what would you change? What would you do earlier? What would you skip?</p>
+            </div>
+        </section>
+
+        <!-- Reflections -->
+        <section>
+            <h2>🎓 Personal Reflections</h2>
+            
+            <div class="placeholder">
+                <h4>✏️ WHAT THIS PROJECT MEANT TO YOU</h4>
+                <p>How did this project change you as a developer? What skills did you gain? How does it fit into your career goals?</p>
+            </div>
+            
+            <!-- EXAMPLE - Replace with your thoughts:
+            <p>
+                Before this project, I thought [old belief]. After going through this 
+                process, I now understand that [new belief]. This experience taught me 
+                not just about RAG systems, but about [broader lesson]...
+            </p>
+            
+            <p>
+                The most valuable skill I developed was [specific skill], which I've already 
+                applied to [other project or situation]...
+            </p>
+            -->
+        </section>
+
+        <!-- Call to Action -->
+        <section style="text-align: center; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);">
+            <h2>🚀 Try It Yourself</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 30px;">
+                The system is live and ready to test with your own car manuals!
+            </p>
+            <a href="https://manual-ai-psi.vercel.app" 
+               style="display: inline-block; background: #2563eb; color: white; padding: 15px 40px; 
+                      border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 1.1rem;">
+                Try the Live Demo →
+            </a>
+            <p style="margin-top: 20px; font-size: 0.95rem; color: #64748b;">
+                Upload manuals up to 20MB • Works with 600+ page documents
+            </p>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>
+                <strong>ManualAi</strong> - A Production RAG System Case Study<br>
+                Built by <a href="https://github.com/agapemiteu">Agape Miteu</a> | 
+                <a href="https://github.com/agapemiteu/ManualAi">View Source Code</a> | 
+                <a href="https://github.com/agapemiteu/ManualAi/blob/main/PRODUCTION_CASE_STUDY.md">Technical Report</a>
+            </p>
+            <p style="margin-top: 15px; font-size: 0.9rem; opacity: 0.8;">
+                © 2025 | Deployed on Vercel, HuggingFace, and GitHub Pages
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
